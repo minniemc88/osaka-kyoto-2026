@@ -85,10 +85,9 @@
 
     <script>
         // ========================================================
-        // 🔧 設定區：請將 Money 分頁的 CSV 連結貼在這裡
+        // 🔧 設定區：已修正為正確的 CSV 格式連結
         // ========================================================
-        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTp0MhtAO0YZ0ovwdUOHabThzBaxYkVkmbF9BO8ihFLpy7IKBWcVd3_YGSHCQp7Q/pubhtml?gid=1753282654&single=true'; 
-        // 例如: 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=0&single=true&output=csv'
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTp0MhtAO0YZ0ovwdUOHabThzBaxYkVkmbF9BO8ihFLpy7IKBWcVd3_YGSHCQp7Q/pub?gid=1753282654&single=true&output=csv';
         // ========================================================
 
         // 固定資料 (行程、資訊、合約 - 離線使用)
@@ -137,7 +136,7 @@
                 { id: 6, date: "2/1 (日)", loc: "返程", note: "最後採買", events: [
                     { time: "07:00", title: "伏見稻荷大社", type: "sight", icon: "fa-mountain", desc: "千本鳥居", nav: "Fushimi Inari Taisha" },
                     { time: "中午", title: "前往機場/臨空城", type: "transport", icon: "fa-train", desc: "經由京阪電車/JR", nav: "Rinku Premium Outlets" },
-                    { time: "下午", title: "臨空城 Outlet", type: "shopping", icon: "fa-shopping-bag", desc: "最後衝刺！", nav: "Rinku Premium Outlets" },
+                    { time: "下午", title: "臨空城 Outlet", type: "shopping", icon: "fa-shopping-bag", desc: "最後衝刺！Montbell", nav: "Rinku Premium Outlets" },
                     { time: "18:55", title: "關西機場 T1 起飛", type: "transport", icon: "fa-plane-departure", desc: "虎航 IT 213 (KIX-TPE)", nav: "Kansai International Airport Terminal 1" }
                 ]}
             ],
@@ -250,7 +249,7 @@
             } else if (tabName === 'money') {
                 headerSubtitle.innerText = "預算管理";
                 renderMoney();
-                // 如果還沒抓過資料且有設定網址，自動抓取
+                // 如果還沒抓過資料，自動抓取
                 if (!liveMoneyData && !GOOGLE_SHEET_CSV_URL.includes('請將您')) {
                     fetchMoneyData();
                 }
@@ -267,7 +266,7 @@
             const status = document.getElementById('money-status');
             
             if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.includes('請將您')) {
-                if(status) status.innerText = "⚠️ 尚未設定連結，顯示內建資料";
+                if(status) status.innerText = "⚠️ 連結未設定";
                 return;
             }
 
@@ -278,7 +277,7 @@
 
             try {
                 // 加時間戳防止快取
-                const response = await fetch(GOOGLE_SHEET_CSV_URL + (GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + new Date().getTime());
+                const response = await fetch(GOOGLE_SHEET_CSV_URL + '&t=' + new Date().getTime());
                 if (!response.ok) throw new Error("Network response was not ok");
                 const text = await response.text();
                 
@@ -479,10 +478,10 @@
             
             if (diff > 0) {
                 colorClass = "border-blue-500 bg-blue-50 text-blue-800";
-                resultHtml = `<div class="font-bold text-lg mb-1">米妮 👩🏻 ➜ 給 彬彬 👦🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">彬先付: $${binPaid.toLocaleString()} / 妮先付: $${minPaid.toLocaleString()}</div>`;
+                resultHtml = `<div class="font-bold text-lg mb-1">米妮 👩🏻 ➜ 給 ➜ 彬彬 👦🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">彬先付: $${binPaid.toLocaleString()} / 妮先付: $${minPaid.toLocaleString()}</div>`;
             } else if (diff < 0) {
                 colorClass = "border-pink-500 bg-pink-50 text-pink-800";
-                resultHtml = `<div class="font-bold text-lg mb-1">彬彬 👦🏻 ➜ 給 米妮 👩🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">妮先付: $${minPaid.toLocaleString()} / 彬先付: $${binPaid.toLocaleString()}</div>`;
+                resultHtml = `<div class="font-bold text-lg mb-1">彬彬 👦🏻 ➜ 給 ➜ 米妮 👩🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">妮先付: $${minPaid.toLocaleString()} / 彬先付: $${binPaid.toLocaleString()}</div>`;
             } else {
                 colorClass = "border-green-500 bg-green-50 text-green-800";
                 resultHtml = `<div class="font-bold">🎉 雙方付的一樣多！</div>`;
