@@ -38,6 +38,9 @@
         }
         .contract-item:last-child { border-bottom: none; }
         
+        /* 讀取動畫 */
+        .fa-spin-fast { animation: fa-spin 0.8s infinite linear; }
+        
         /* 結算結果動畫 */
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-10px); }
@@ -82,9 +85,14 @@
 
     <script>
         // ========================================================
-        // 🔒 全離線資料庫 (無須連網)
+        // 🔧 設定區：請將 Money 分頁的 CSV 連結貼在這裡
         // ========================================================
-        const tripData = {
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTp0MhtAO0YZ0ovwdUOHabThzBaxYkVkmbF9BO8ihFLpy7IKBWcVd3_YGSHCQp7Q/pubhtml?gid=1753282654&single=true'; 
+        // 例如: 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=0&single=true&output=csv'
+        // ========================================================
+
+        // 固定資料 (行程、資訊、合約 - 離線使用)
+        const staticData = {
             days: [
                 { id: 1, date: "1/27 (二)", loc: "大阪", note: "移動日", events: [
                     { time: "22:15", title: "抵達關西機場 T2", type: "transport", icon: "fa-plane-arrival", desc: "樂桃 MM028", nav: "Kansai International Airport Terminal 2" },
@@ -145,23 +153,6 @@
                 checkList: ["酸痛貼布", "網路卡", "日幣", "充電線", "行動電源", "常備藥"],
                 shopping: ["WINSTON CASTER WHITE 5", "暖腳襪 (唐吉柯德)", "白色御守 (下鴨神社)"]
             },
-            money: {
-                common: [
-                    { item: "關西—難波", cost: 562, payer: "彬彬" },
-                    { item: "大阪住宿", cost: 7537, payer: "米妮" },
-                    { item: "觀景台", cost: 640, payer: "彬彬" },
-                    { item: "京都住宿", cost: 6155, payer: "米妮" },
-                    { item: "高鐵票", cost: 970, payer: "彬彬" }
-                ],
-                personal: [
-                    { item: "機票", cost: 17947 },
-                    { item: "保險", cost: 414 },
-                    { item: "🍉 Suica卡", cost: 201 },
-                    { item: "飯店", cost: 6157 },
-                    { item: "高鐵 (雲林-台中)", cost: 205 },
-                    { item: "高鐵 (台中-桃園)", cost: 485 }
-                ]
-            },
             contract: [
                 { id: 1, 
                   binReq: "不要一直拍照，\n一個景點幫拍最多10張，合照5張", 
@@ -208,10 +199,36 @@
             ]
         };
 
+        // 預設 Money 資料 (若無法連線時顯示)
+        const defaultMoney = {
+            common: [
+                { item: "關西—難波", cost: 562, payer: "彬彬" },
+                { item: "大阪住宿", cost: 7537, payer: "米妮" },
+                { item: "觀景台", cost: 640, payer: "彬彬" },
+                { item: "京都住宿", cost: 6155, payer: "米妮" },
+                { item: "高鐵票", cost: 970, payer: "彬彬" }
+            ],
+            personal: [
+                { item: "機票", cost: 17947 },
+                { item: "保險", cost: 414 },
+                { item: "🍉 Suica卡", cost: 201 },
+                { item: "飯店", cost: 6157 },
+                { item: "高鐵 (雲林-台中)", cost: 205 },
+                { item: "高鐵 (台中-桃園)", cost: 485 }
+            ]
+        };
+
+        // 全域變數
+        let liveMoneyData = null;
+        let lastUpdateStr = "";
         let currentDayId = 1;
         const appContent = document.getElementById('app-content');
         const headerSubtitle = document.getElementById('header-subtitle');
         const daySelector = document.getElementById('day-selector');
+
+        // ========================
+        // 核心邏輯
+        // ========================
 
         function init() {
             renderDaySelector();
@@ -225,7 +242,7 @@
             daySelector.style.display = (tabName === 'itinerary') ? 'flex' : 'none';
 
             if (tabName === 'itinerary') {
-                headerSubtitle.innerText = tripData.days.find(d => d.id === currentDayId).date;
+                headerSubtitle.innerText = staticData.days.find(d => d.id === currentDayId).date;
                 renderItinerary(currentDayId);
             } else if (tabName === 'info') {
                 headerSubtitle.innerText = "航班與住宿";
@@ -233,6 +250,10 @@
             } else if (tabName === 'money') {
                 headerSubtitle.innerText = "預算管理";
                 renderMoney();
+                // 如果還沒抓過資料且有設定網址，自動抓取
+                if (!liveMoneyData && !GOOGLE_SHEET_CSV_URL.includes('請將您')) {
+                    fetchMoneyData();
+                }
             } else if (tabName === 'contract') {
                 headerSubtitle.innerText = "不吵架契約";
                 renderContract(); 
@@ -240,9 +261,117 @@
             window.scrollTo(0,0);
         }
 
+        // --- 網路請求 (只針對 Money) ---
+        async function fetchMoneyData() {
+            const btn = document.getElementById('sync-money-btn');
+            const status = document.getElementById('money-status');
+            
+            if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.includes('請將您')) {
+                if(status) status.innerText = "⚠️ 尚未設定連結，顯示內建資料";
+                return;
+            }
+
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-sync-alt fa-spin-fast mr-1"></i> 讀取中`;
+            }
+
+            try {
+                // 加時間戳防止快取
+                const response = await fetch(GOOGLE_SHEET_CSV_URL + (GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + new Date().getTime());
+                if (!response.ok) throw new Error("Network response was not ok");
+                const text = await response.text();
+                
+                const rows = parseCSV(text);
+                parseMoneyData(rows);
+                renderMoney(); // 重新渲染
+
+                // 更新時間
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+                if(status) status.innerText = `最後更新: ${timeStr}`;
+
+            } catch (error) {
+                console.error("Fetch error:", error);
+                if(status) status.innerText = "❌ 更新失敗，顯示離線資料";
+            } finally {
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-sync-alt mr-1"></i> 更新`;
+                }
+            }
+        }
+
+        // 簡易 CSV 解析器
+        function parseCSV(text) {
+            const rows = [];
+            let currentRow = [];
+            let currentCell = '';
+            let insideQuotes = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"') {
+                    if (insideQuotes && text[i+1] === '"') {
+                        currentCell += '"'; 
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    currentRow.push(currentCell.trim());
+                    currentCell = '';
+                } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+                    if (currentCell || currentRow.length > 0) currentRow.push(currentCell.trim());
+                    if (currentRow.length > 0) rows.push(currentRow);
+                    currentRow = [];
+                    currentCell = '';
+                    if (char === '\r' && text[i+1] === '\n') i++; 
+                } else {
+                    currentCell += char;
+                }
+            }
+            if (currentCell) currentRow.push(currentCell.trim());
+            if (currentRow.length > 0) rows.push(currentRow);
+            return rows;
+        }
+
+        // 資料處理：Money
+        function parseMoneyData(rows) {
+            const newCommon = [];
+            const newPersonal = [];
+            
+            // 跳過標題列，假設從第 3 行 (Index 2) 開始是資料
+            for (let i = 2; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length < 2) continue;
+
+                // 左邊：共同 (Col 0:項目, 1:金額, 2:付款人)
+                if (row[0]) {
+                    let cost = parseInt(row[1]?.replace(/,/g, '')) || 0;
+                    let payer = row[2] || "未標註";
+                    if(payer.includes("彬")) payer = "彬彬";
+                    if(payer.includes("米")) payer = "米妮";
+                    
+                    newCommon.push({ item: row[0], cost: cost, payer: payer });
+                }
+                
+                // 右邊：個人 (依據CSV Col 9, 10)
+                if (row[9]) {
+                    let cost = parseInt(row[10]?.replace(/,/g, '')) || 0;
+                    newPersonal.push({ item: row[9], cost: cost });
+                }
+            }
+            liveMoneyData = { common: newCommon, personal: newPersonal };
+        }
+
+        // ========================
+        // 渲染畫面 Functions
+        // ========================
+
         // 1. 行程
         function renderItinerary(dayId) {
-            const day = tripData.days.find(d => d.id === dayId);
+            const day = staticData.days.find(d => d.id === dayId);
             let html = `
                 <div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-2 flex items-center shadow-sm">
                     <i class="fas fa-info-circle mr-2 text-lg"></i><span>${day.note}</span>
@@ -269,14 +398,21 @@
             appContent.innerHTML = html;
         }
 
-        // 2. 帳務 (離線版)
+        // 2. 帳務 (可更新)
         function renderMoney() {
-            const data = tripData.money;
+            const data = liveMoneyData || defaultMoney;
             const commonTotal = data.common.reduce((sum, item) => sum + item.cost, 0);
             const personalTotal = data.personal.reduce((sum, item) => sum + item.cost, 0);
 
             let html = `
-                <div class="flex gap-2 mb-4 mt-2">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-xs text-gray-400" id="money-status">${liveMoneyData ? '已同步最新資料' : '顯示內建資料'}</span>
+                    <button id="sync-money-btn" onclick="fetchMoneyData()" class="text-gray-500 text-xs px-2 py-1 rounded hover:bg-gray-100 flex items-center border border-gray-200 bg-white">
+                        <i class="fas fa-sync-alt mr-1"></i> 更新
+                    </button>
+                </div>
+                
+                <div class="flex gap-2 mb-4">
                     <button onclick="calculateSettlement()" class="flex-1 bg-gradient-to-r from-gray-800 to-gray-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg active:scale-95 transition-transform flex justify-center items-center">
                         <i class="fas fa-coins mr-2 text-yellow-400"></i> 結算：誰要給誰錢？
                     </button>
@@ -327,7 +463,7 @@
         }
 
         function calculateSettlement() {
-            const data = tripData.money;
+            const data = liveMoneyData || defaultMoney;
             let binPaid = 0;
             let minPaid = 0;
             
@@ -356,7 +492,7 @@
 
         // 3. 合約 (離線版)
         function renderContract() {
-            const data = tripData.contract;
+            const data = staticData.contract;
             
             let binSectionHtml = `<div class="card p-5 mb-4 border-l-4 border-blue-400"><div class="text-blue-700 font-bold mb-3"><i class="fas fa-male mr-2 text-xl"></i> 彬彬哥的要求</div><div class="text-sm">`;
             data.forEach(row => {
@@ -386,7 +522,7 @@
 
         // 4. 資訊
         function renderInfo() {
-            const info = tripData.info;
+            const info = staticData.info;
             appContent.innerHTML = `
                 <div class="card p-4 mb-4"><h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-shopping-cart text-pink-500 mr-2"></i>必買清單</h3><ul class="space-y-2">${info.shopping.map(item => `<li class="flex items-center text-sm"><i class="far fa-check-circle text-pink-300 mr-2"></i>${item}</li>`).join('')}</ul></div>
                 <div class="card p-4 mb-4"><h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-suitcase-rolling text-blue-500 mr-2"></i>行前確認</h3><div class="flex flex-wrap gap-2">${info.checkList.map(i => `<span class="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded border border-yellow-200">${i}</span>`).join('')}</div></div>
@@ -396,14 +532,14 @@
 
         // Helper
         function renderDaySelector() {
-            daySelector.innerHTML = tripData.days.map(day => `
+            daySelector.innerHTML = staticData.days.map(day => `
                 <button onclick="changeDay(${day.id})" class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${day.id === currentDayId ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200'}">${day.date}</button>
             `).join('');
         }
         function changeDay(id) {
             currentDayId = id;
             renderDaySelector();
-            headerSubtitle.innerText = tripData.days.find(d => d.id === id).date;
+            headerSubtitle.innerText = staticData.days.find(d => d.id === id).date;
             renderItinerary(id);
         }
         function getTypeColor(type) {
