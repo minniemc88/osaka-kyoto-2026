@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 京阪🎏 彬彬與米妮</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F9FAFB;
+            color: #333;
+            padding-bottom: 90px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #F3F4F6;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active { color: #B91C1C; font-weight: 600; }
+        .nav-item { color: #9CA3AF; transition: color 0.3s; font-size: 0.7rem; }
+
+        .contract-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #eee;
+        }
+        .contract-item:last-child { border-bottom: none; }
+        
+        /* 讀取動畫 */
+        .fa-spin-fast { animation: fa-spin 0.8s infinite linear; }
+        
+        /* 結算結果動畫 */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-box { animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body>
+
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 py-3 shadow-sm" id="header-area">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-bold text-gray-800 tracking-wide">2026 京阪之旅 🎏</h1>
+                <p class="text-xs text-gray-500"><span id="header-subtitle">行程總覽</span></p>
+            </div>
+            <div class="flex flex-col items-end">
+                <div class="flex items-center text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">
+                    <i class="fas fa-cloud-sun mr-1 text-orange-400"></i> 6°C
+                </div>
+            </div>
+        </div>
+        <div class="flex overflow-x-auto space-x-2 mt-3 pb-1 no-scrollbar" id="day-selector"></div>
+    </header>
+
+    <main id="app-content" class="p-4 space-y-4"></main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe pt-2 px-2 pb-5 flex justify-between items-center z-50">
+        <button class="nav-item active flex flex-col items-center space-y-1 w-1/4" onclick="switchTab('itinerary')">
+            <i class="fas fa-map-marked-alt text-xl"></i><span>行程</span>
+        </button>
+        <button class="nav-item flex flex-col items-center space-y-1 w-1/4" onclick="switchTab('info')">
+            <i class="fas fa-passport text-xl"></i><span>資訊</span>
+        </button>
+        <button class="nav-item flex flex-col items-center space-y-1 w-1/4" onclick="switchTab('money')">
+            <i class="fas fa-calculator text-xl"></i><span>帳務</span>
+        </button>
+        <button class="nav-item flex flex-col items-center space-y-1 w-1/4" onclick="switchTab('contract')">
+            <i class="fas fa-file-signature text-xl"></i><span>合約</span>
+        </button>
+    </nav>
+
+    <script>
+        // ========================================================
+        // 🔧 設定區：請將 Money 分頁的 CSV 連結貼在這裡
+        // ========================================================
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTp0MhtAO0YZ0ovwdUOHabThzBaxYkVkmbF9BO8ihFLpy7IKBWcVd3_YGSHCQp7Q/pubhtml?gid=1753282654&single=true'; 
+        // 例如: 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=0&single=true&output=csv'
+        // ========================================================
+
+        // 固定資料 (行程、資訊、合約 - 離線使用)
+        const staticData = {
+            days: [
+                { id: 1, date: "1/27 (二)", loc: "大阪", note: "移動日", events: [
+                    { time: "22:15", title: "抵達關西機場 T2", type: "transport", icon: "fa-plane-arrival", desc: "樂桃 MM028", nav: "Kansai International Airport Terminal 2" },
+                    { time: "23:00", title: "南海地鐵 → 難波", type: "transport", icon: "fa-bus", desc: "前往第一航廈搭乘", nav: "Kansai Airport Terminal 1 Bus Stop" },
+                    { time: "24:00", title: "VESSEL INN NAMBA", type: "hotel", icon: "fa-bed", desc: "辦理入住", nav: "Vessel Inn Namba" }
+                ]},
+                { id: 2, date: "1/28 (三)", loc: "大阪", note: "大阪周遊卡 Day 1", events: [
+                    { time: "09:00", title: "出發前往大阪城", type: "move", icon: "fa-walking", desc: "早安大阪！", nav: null },
+                    { time: "上午", title: "大阪城 & 天守閣", type: "sight", icon: "fa-chess-rook", desc: "必去地標", nav: "Osaka Castle" },
+                    { time: "午餐", title: "大阪水上巴士", type: "sight", icon: "fa-ship", desc: "10:00-16:00 整點出發", nav: "Osaka Suijyo Bus Aqua-Liner" },
+                    { time: "下午", title: "上方浮世繪館", type: "sight", icon: "fa-paint-brush", desc: "藝術欣賞", nav: "Kamigata Ukiyoe Museum" },
+                    { time: "18:00", title: "道頓崛 & 晚餐", type: "food", icon: "fa-utensils", desc: "敘敘苑燒肉", nav: "Jojoen Verre Wu Osaka" },
+                    { time: "20:45", title: "大阪觀光遊艇", type: "sight", icon: "fa-ticket-alt", desc: "⚠️ <span class='text-red-600 font-bold bg-red-50 px-1 rounded'>已預約 20:45</span>\n請準時抵達碼頭", nav: "Tombori River Cruise" }
+                ]},
+                { id: 3, date: "1/29 (四)", loc: "大阪", note: "大阪周遊卡 Day 2", events: [
+                    { time: "09:00", title: "難波八阪神社", type: "sight", icon: "fa-torii-gate", desc: "巨大獅子頭舞台", nav: "Namba Yasaka Shrine" },
+                    { time: "上午", title: "木津市場", type: "sight", icon: "fa-fish", desc: "感受在地市場活力", nav: "Kizu Wholesale Market" },
+                    { time: "午餐", title: "大起水產", type: "food", icon: "fa-sushi", desc: "迴轉壽司名店\n📍 難波CITY", nav: "Daiki Suisan Namba City" },
+                    { time: "下午", title: "天王寺動物園", type: "sight", icon: "fa-hippo", desc: "悠閒逛動物園", nav: "Tennoji Zoo" },
+                    { time: "下午", title: "通天閣", type: "sight", icon: "fa-broadcast-tower", desc: "新世界地標", nav: "Tsutenkaku" },
+                    { time: "晚餐", title: "大阪燒", type: "food", icon: "fa-hamburger", desc: "道地大阪燒", nav: "Okonomiyaki Chitose" },
+                    { time: "晚上", title: "Harukas 300 展望台", type: "sight", icon: "fa-binoculars", desc: "✅ 票已買\n絕美夜景", nav: "Harukas 300" }
+                ]},
+                { id: 4, date: "1/30 (五)", loc: "京都", note: "移動至京都", events: [
+                    { time: "09:00", title: "移動至京都", type: "transport", icon: "fa-train", desc: "JR京都線 / 阪急電鐵\n🏨 飯店：京都東山希爾頓逸林酒店", nav: "DoubleTree by Hilton Kyoto Higashiyama" },
+                    { time: "上午", title: "京都御苑", type: "sight", icon: "fa-tree", desc: "皇室庭園", nav: "Kyoto Gyoen National Garden" },
+                    { time: "午餐", title: "豬排：Katsurai", type: "food", icon: "fa-utensils", desc: "米其林推薦", nav: "Katsurai" },
+                    { time: "下午", title: "下鴨神社", type: "sight", icon: "fa-torii-gate", desc: "必買：白色蕾絲御守", nav: "Shimogamo Shrine" },
+                    { time: "下午", title: "金閣寺", type: "sight", icon: "fa-place-of-worship", desc: "金碧輝煌", nav: "Kinkaku-ji" },
+                    { time: "16:00", title: "茶道體驗", type: "activity", icon: "fa-mug-hot", desc: "體驗日本文化", nav: "Kyoto Tea Ceremony" },
+                    { time: "晚餐", title: "錦市場", type: "food", icon: "fa-shopping-basket", desc: "各種小吃", nav: "Nishiki Market" },
+                    { time: "傍晚", title: "鴨川夕陽", type: "sight", icon: "fa-water", desc: "河岸散步", nav: "Kamogawa River" }
+                ]},
+                { id: 5, date: "1/31 (六)", loc: "京都", note: "古都巡禮", events: [
+                    { time: "09:00", title: "清水寺 + 二年坂", type: "sight", icon: "fa-gopuram", desc: "👘 和服體驗", nav: "Kiyomizu-dera" },
+                    { time: "上午", title: "八坂神社", type: "sight", icon: "fa-torii-gate", desc: "祇園守護神", nav: "Yasaka Shrine" },
+                    { time: "午餐", title: "壽喜燒：十二段家 本店", type: "food", icon: "fa-utensils", desc: "涮涮鍋發源地", nav: "Junidanya Honten" },
+                    { time: "下午", title: "祇園 與 花見小路", type: "sight", icon: "fa-fan", desc: "古色古香街道", nav: "Hanamikoji Street" },
+                    { time: "下午", title: "平安神宮", type: "sight", icon: "fa-archway", desc: "巨大紅色鳥居", nav: "Heian Shrine" },
+                    { time: "晚餐", title: "串燒", type: "food", icon: "fa-drumstick-bite", desc: "到時候再找喜歡的店", nav: "Pontocho" }
+                ]},
+                { id: 6, date: "2/1 (日)", loc: "返程", note: "最後採買", events: [
+                    { time: "07:00", title: "伏見稻荷大社", type: "sight", icon: "fa-mountain", desc: "千本鳥居", nav: "Fushimi Inari Taisha" },
+                    { time: "中午", title: "前往機場/臨空城", type: "transport", icon: "fa-train", desc: "經由京阪電車/JR", nav: "Rinku Premium Outlets" },
+                    { time: "下午", title: "臨空城 Outlet", type: "shopping", icon: "fa-shopping-bag", desc: "最後衝刺！", nav: "Rinku Premium Outlets" },
+                    { time: "18:55", title: "關西機場 T1 起飛", type: "transport", icon: "fa-plane-departure", desc: "虎航 IT 213 (KIX-TPE)", nav: "Kansai International Airport Terminal 1" }
+                ]}
+            ],
+            info: {
+                flights: [
+                    { dir: "去程", date: "1/27 (二)", airline: "樂桃 MM028", time: "18:00 TPE ➝ 22:15 KIX (T2)", seat: "8A (妮), 8B (碩)" },
+                    { dir: "回程", date: "2/1 (日)", airline: "虎航 IT 213", time: "18:55 KIX (T1) ➝ 21:15 TPE", seat: "21B (妮), 21A (碩)" }
+                ],
+                hotels: [
+                    { name: "難波船舶旅館 (Vessel Inn)", loc: "大阪", nights: "1/27-1/30" },
+                    { name: "京都東山希爾頓逸林酒店", loc: "京都", nights: "1/30-2/1" }
+                ],
+                checkList: ["酸痛貼布", "網路卡", "日幣", "充電線", "行動電源", "常備藥"],
+                shopping: ["WINSTON CASTER WHITE 5", "暖腳襪 (唐吉柯德)", "白色御守 (下鴨神社)"]
+            },
+            contract: [
+                { id: 1, 
+                  binReq: "不要一直拍照，\n一個景點幫拍最多10張，合照5張", 
+                  minAgree: "🤏至少要有好看的", 
+                  minReq: "不要擺臭臉、不說話（累了除外）", 
+                  binAgree: "✅" 
+                },
+                { id: 2, 
+                  binReq: "不能嫌走路累(不舒服可以說)", 
+                  minAgree: "✅會哭夭但會繼續走", 
+                  minReq: "意見不同就溝通想辦法", 
+                  binAgree: "✅" 
+                },
+                { id: 3, 
+                  binReq: "確定行程再行動", 
+                  minAgree: "✅", 
+                  minReq: "吵架不可以說難聽的話", 
+                  binAgree: "✅" 
+                },
+                { id: 4, 
+                  binReq: "有什麼事直接討論，我不想猜", 
+                  minAgree: "✅", 
+                  minReq: "迷路或帶錯路不能生氣", 
+                  binAgree: "✅" 
+                },
+                { id: 5, 
+                  binReq: "以下空白", 
+                  minAgree: null, 
+                  minReq: "不能嫌棄對方的景點，因為這是一起討論的", 
+                  binAgree: "✅" 
+                },
+                { id: 6, 
+                  binReq: null, 
+                  minAgree: null, 
+                  minReq: "發現情緒來了，要提醒對方冷靜（盡量）", 
+                  binAgree: "✅" 
+                },
+                { id: 7, 
+                  binReq: null, 
+                  minAgree: null, 
+                  minReq: "每天要分享開心/不愉快的事，並且感謝對方", 
+                  binAgree: "有點困難，但我可以聽" 
+                }
+            ]
+        };
+
+        // 預設 Money 資料 (若無法連線時顯示)
+        const defaultMoney = {
+            common: [
+                { item: "關西—難波", cost: 562, payer: "彬彬" },
+                { item: "大阪住宿", cost: 7537, payer: "米妮" },
+                { item: "觀景台", cost: 640, payer: "彬彬" },
+                { item: "京都住宿", cost: 6155, payer: "米妮" },
+                { item: "高鐵票", cost: 970, payer: "彬彬" }
+            ],
+            personal: [
+                { item: "機票", cost: 17947 },
+                { item: "保險", cost: 414 },
+                { item: "🍉 Suica卡", cost: 201 },
+                { item: "飯店", cost: 6157 },
+                { item: "高鐵 (雲林-台中)", cost: 205 },
+                { item: "高鐵 (台中-桃園)", cost: 485 }
+            ]
+        };
+
+        // 全域變數
+        let liveMoneyData = null;
+        let lastUpdateStr = "";
+        let currentDayId = 1;
+        const appContent = document.getElementById('app-content');
+        const headerSubtitle = document.getElementById('header-subtitle');
+        const daySelector = document.getElementById('day-selector');
+
+        // ========================
+        // 核心邏輯
+        // ========================
+
+        function init() {
+            renderDaySelector();
+            switchTab('itinerary');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget?.classList.add('active');
+            
+            daySelector.style.display = (tabName === 'itinerary') ? 'flex' : 'none';
+
+            if (tabName === 'itinerary') {
+                headerSubtitle.innerText = staticData.days.find(d => d.id === currentDayId).date;
+                renderItinerary(currentDayId);
+            } else if (tabName === 'info') {
+                headerSubtitle.innerText = "航班與住宿";
+                renderInfo();
+            } else if (tabName === 'money') {
+                headerSubtitle.innerText = "預算管理";
+                renderMoney();
+                // 如果還沒抓過資料且有設定網址，自動抓取
+                if (!liveMoneyData && !GOOGLE_SHEET_CSV_URL.includes('請將您')) {
+                    fetchMoneyData();
+                }
+            } else if (tabName === 'contract') {
+                headerSubtitle.innerText = "不吵架契約";
+                renderContract(); 
+            }
+            window.scrollTo(0,0);
+        }
+
+        // --- 網路請求 (只針對 Money) ---
+        async function fetchMoneyData() {
+            const btn = document.getElementById('sync-money-btn');
+            const status = document.getElementById('money-status');
+            
+            if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.includes('請將您')) {
+                if(status) status.innerText = "⚠️ 尚未設定連結，顯示內建資料";
+                return;
+            }
+
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-sync-alt fa-spin-fast mr-1"></i> 讀取中`;
+            }
+
+            try {
+                // 加時間戳防止快取
+                const response = await fetch(GOOGLE_SHEET_CSV_URL + (GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + new Date().getTime());
+                if (!response.ok) throw new Error("Network response was not ok");
+                const text = await response.text();
+                
+                const rows = parseCSV(text);
+                parseMoneyData(rows);
+                renderMoney(); // 重新渲染
+
+                // 更新時間
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+                if(status) status.innerText = `最後更新: ${timeStr}`;
+
+            } catch (error) {
+                console.error("Fetch error:", error);
+                if(status) status.innerText = "❌ 更新失敗，顯示離線資料";
+            } finally {
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-sync-alt mr-1"></i> 更新`;
+                }
+            }
+        }
+
+        // 簡易 CSV 解析器
+        function parseCSV(text) {
+            const rows = [];
+            let currentRow = [];
+            let currentCell = '';
+            let insideQuotes = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"') {
+                    if (insideQuotes && text[i+1] === '"') {
+                        currentCell += '"'; 
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    currentRow.push(currentCell.trim());
+                    currentCell = '';
+                } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+                    if (currentCell || currentRow.length > 0) currentRow.push(currentCell.trim());
+                    if (currentRow.length > 0) rows.push(currentRow);
+                    currentRow = [];
+                    currentCell = '';
+                    if (char === '\r' && text[i+1] === '\n') i++; 
+                } else {
+                    currentCell += char;
+                }
+            }
+            if (currentCell) currentRow.push(currentCell.trim());
+            if (currentRow.length > 0) rows.push(currentRow);
+            return rows;
+        }
+
+        // 資料處理：Money
+        function parseMoneyData(rows) {
+            const newCommon = [];
+            const newPersonal = [];
+            
+            // 跳過標題列，假設從第 3 行 (Index 2) 開始是資料
+            for (let i = 2; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length < 2) continue;
+
+                // 左邊：共同 (Col 0:項目, 1:金額, 2:付款人)
+                if (row[0]) {
+                    let cost = parseInt(row[1]?.replace(/,/g, '')) || 0;
+                    let payer = row[2] || "未標註";
+                    if(payer.includes("彬")) payer = "彬彬";
+                    if(payer.includes("米")) payer = "米妮";
+                    
+                    newCommon.push({ item: row[0], cost: cost, payer: payer });
+                }
+                
+                // 右邊：個人 (依據CSV Col 9, 10)
+                if (row[9]) {
+                    let cost = parseInt(row[10]?.replace(/,/g, '')) || 0;
+                    newPersonal.push({ item: row[9], cost: cost });
+                }
+            }
+            liveMoneyData = { common: newCommon, personal: newPersonal };
+        }
+
+        // ========================
+        // 渲染畫面 Functions
+        // ========================
+
+        // 1. 行程
+        function renderItinerary(dayId) {
+            const day = staticData.days.find(d => d.id === dayId);
+            let html = `
+                <div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-2 flex items-center shadow-sm">
+                    <i class="fas fa-info-circle mr-2 text-lg"></i><span>${day.note}</span>
+                </div>
+            `;
+            html += day.events.map(e => `
+                <div class="card p-4 relative flex items-start gap-4">
+                    <div class="flex flex-col items-center min-w-[50px]">
+                        <span class="text-xs font-bold text-gray-400 mb-1">${e.time}</span>
+                        <div class="w-10 h-10 rounded-full ${getTypeColor(e.type)} flex items-center justify-center text-white shadow-sm">
+                            <i class="fas ${e.icon}"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 pt-1">
+                        <h3 class="font-bold text-gray-800 text-lg leading-tight">${e.title}</h3>
+                        <p class="text-sm text-gray-500 mt-1 mb-2 whitespace-pre-line">${e.desc}</p>
+                        ${e.nav ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.nav)}" target="_blank" 
+                            class="inline-flex items-center text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full hover:bg-gray-200">
+                            <i class="fas fa-location-arrow mr-1.5"></i> 導航
+                        </a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            appContent.innerHTML = html;
+        }
+
+        // 2. 帳務 (可更新)
+        function renderMoney() {
+            const data = liveMoneyData || defaultMoney;
+            const commonTotal = data.common.reduce((sum, item) => sum + item.cost, 0);
+            const personalTotal = data.personal.reduce((sum, item) => sum + item.cost, 0);
+
+            let html = `
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-xs text-gray-400" id="money-status">${liveMoneyData ? '已同步最新資料' : '顯示內建資料'}</span>
+                    <button id="sync-money-btn" onclick="fetchMoneyData()" class="text-gray-500 text-xs px-2 py-1 rounded hover:bg-gray-100 flex items-center border border-gray-200 bg-white">
+                        <i class="fas fa-sync-alt mr-1"></i> 更新
+                    </button>
+                </div>
+                
+                <div class="flex gap-2 mb-4">
+                    <button onclick="calculateSettlement()" class="flex-1 bg-gradient-to-r from-gray-800 to-gray-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg active:scale-95 transition-transform flex justify-center items-center">
+                        <i class="fas fa-coins mr-2 text-yellow-400"></i> 結算：誰要給誰錢？
+                    </button>
+                </div>
+                <div id="settlement-container"></div>
+
+                <div class="card p-0 overflow-hidden mb-4 border-emerald-200 border">
+                    <div class="bg-emerald-500 p-4 text-white flex justify-between items-end">
+                        <div><p class="text-xs opacity-80 mb-1">公費總支出</p><p class="text-2xl font-bold">NT$ ${commonTotal.toLocaleString()}</p></div>
+                        <i class="fas fa-users text-4xl opacity-20"></i>
+                    </div>
+                    <div class="p-0">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-100">
+                                <tr><th class="text-left p-3 font-normal">項目</th><th class="text-right p-3 font-normal">金額</th><th class="text-center p-3 font-normal w-16">先付</th></tr>
+                            </thead>
+                            <tbody>
+                            ${data.common.map(m => `
+                                <tr class="border-b last:border-0 border-gray-100">
+                                    <td class="p-3 text-gray-700 font-medium">${m.item}</td>
+                                    <td class="p-3 text-right font-mono text-gray-600">$${m.cost.toLocaleString()}</td>
+                                    <td class="p-3 text-center"><span class="text-[10px] px-2 py-1 rounded-full whitespace-nowrap ${m.payer.includes('米') ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}">${m.payer.includes('米')?'👩🏻':'👦🏻'} ${m.payer}</span></td>
+                                </tr>
+                            `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card p-0 overflow-hidden mb-4 border-pink-200 border">
+                    <div class="bg-pink-500 p-4 text-white flex justify-between items-end">
+                        <div><p class="text-xs opacity-80 mb-1">米妮個人支出</p><p class="text-2xl font-bold">NT$ ${personalTotal.toLocaleString()}</p></div>
+                        <i class="fas fa-shopping-bag text-4xl opacity-20"></i>
+                    </div>
+                    <div class="p-0">
+                        <table class="w-full text-sm">
+                            ${data.personal.map(m => `
+                                <tr class="border-b last:border-0 border-gray-100">
+                                    <td class="p-3 text-gray-600">${m.item}</td>
+                                    <td class="p-3 text-right font-mono font-medium text-gray-800">$${m.cost.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                </div>
+            `;
+            appContent.innerHTML = html;
+        }
+
+        function calculateSettlement() {
+            const data = liveMoneyData || defaultMoney;
+            let binPaid = 0;
+            let minPaid = 0;
+            
+            data.common.forEach(m => {
+                if (m.payer.includes("彬")) binPaid += m.cost;
+                else if (m.payer.includes("米")) minPaid += m.cost;
+            });
+
+            const diff = binPaid - minPaid;
+            const amountToPay = Math.abs(diff / 2);
+            let resultHtml = "";
+            let colorClass = "";
+            
+            if (diff > 0) {
+                colorClass = "border-blue-500 bg-blue-50 text-blue-800";
+                resultHtml = `<div class="font-bold text-lg mb-1">米妮 👩🏻 ➜ 給 彬彬 👦🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">彬先付: $${binPaid.toLocaleString()} / 妮先付: $${minPaid.toLocaleString()}</div>`;
+            } else if (diff < 0) {
+                colorClass = "border-pink-500 bg-pink-50 text-pink-800";
+                resultHtml = `<div class="font-bold text-lg mb-1">彬彬 👦🏻 ➜ 給 米妮 👩🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">妮先付: $${minPaid.toLocaleString()} / 彬先付: $${binPaid.toLocaleString()}</div>`;
+            } else {
+                colorClass = "border-green-500 bg-green-50 text-green-800";
+                resultHtml = `<div class="font-bold">🎉 雙方付的一樣多！</div>`;
+            }
+            document.getElementById('settlement-container').innerHTML = `<div class="result-box p-4 rounded-xl border-2 text-center shadow-sm mb-4 ${colorClass}">${resultHtml}</div>`;
+        }
+
+        // 3. 合約 (離線版)
+        function renderContract() {
+            const data = staticData.contract;
+            
+            let binSectionHtml = `<div class="card p-5 mb-4 border-l-4 border-blue-400"><div class="text-blue-700 font-bold mb-3"><i class="fas fa-male mr-2 text-xl"></i> 彬彬哥的要求</div><div class="text-sm">`;
+            data.forEach(row => {
+                if (row.binReq) binSectionHtml += `<div class="contract-item"><div class="font-medium text-gray-800 mb-1">${row.binReq}</div>${row.minAgree ? `<div class="text-gray-500 text-xs">👩🏻 米妮回應：<span class="text-pink-600 font-bold">${row.minAgree}</span></div>` : ''}</div>`;
+            });
+            binSectionHtml += `</div></div>`;
+
+            let minSectionHtml = `<div class="card p-5 mb-4 border-l-4 border-pink-400"><div class="text-pink-700 font-bold mb-3"><i class="fas fa-female mr-2 text-xl"></i> 米妮的要求</div><div class="text-sm">`;
+            data.forEach(row => {
+                if (row.minReq) minSectionHtml += `<div class="contract-item"><div class="font-medium text-gray-800 mb-1">${row.minReq}</div>${row.binAgree ? `<div class="text-gray-500 text-xs">👦🏻 彬彬回應：<span class="text-blue-600 font-bold">${row.binAgree}</span></div>` : ''}</div>`;
+            });
+            minSectionHtml += `</div></div>`;
+
+            let html = `
+                <div class="text-center text-sm text-gray-500 mb-4">📜 雙方不吵架條約</div>
+                ${binSectionHtml}
+                ${minSectionHtml}
+                <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">願我們的旅程充滿快樂與愛 🩵</h3>
+                    <div class="grid grid-cols-2 gap-8 mt-6">
+                        <div class="text-center"><div class="border-b-2 border-gray-300 w-24 mx-auto mb-2"></div><span class="text-xs text-gray-400">彬彬哥 (簽署)</span></div>
+                        <div class="text-center"><div class="border-b-2 border-gray-300 w-24 mx-auto mb-2"></div><span class="text-xs text-gray-400">米妮 (簽署)</span></div>
+                    </div>
+                </div>`;
+            appContent.innerHTML = html;
+        }
+
+        // 4. 資訊
+        function renderInfo() {
+            const info = staticData.info;
+            appContent.innerHTML = `
+                <div class="card p-4 mb-4"><h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-shopping-cart text-pink-500 mr-2"></i>必買清單</h3><ul class="space-y-2">${info.shopping.map(item => `<li class="flex items-center text-sm"><i class="far fa-check-circle text-pink-300 mr-2"></i>${item}</li>`).join('')}</ul></div>
+                <div class="card p-4 mb-4"><h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-suitcase-rolling text-blue-500 mr-2"></i>行前確認</h3><div class="flex flex-wrap gap-2">${info.checkList.map(i => `<span class="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded border border-yellow-200">${i}</span>`).join('')}</div></div>
+                ${info.flights.map(f => `<div class="card p-4 border-l-4 border-blue-500 mb-4"><div class="flex justify-between mb-2"><span class="font-bold text-blue-600">${f.dir}</span><span class="text-xs text-gray-400">${f.date}</span></div><div class="text-lg font-bold mb-1">${f.airline}</div><div class="text-sm text-gray-600 mb-2">${f.time}</div><div class="text-xs bg-gray-100 p-2 rounded text-gray-500">座位: ${f.seat}</div></div>`).join('')}
+            `;
+        }
+
+        // Helper
+        function renderDaySelector() {
+            daySelector.innerHTML = staticData.days.map(day => `
+                <button onclick="changeDay(${day.id})" class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${day.id === currentDayId ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200'}">${day.date}</button>
+            `).join('');
+        }
+        function changeDay(id) {
+            currentDayId = id;
+            renderDaySelector();
+            headerSubtitle.innerText = staticData.days.find(d => d.id === id).date;
+            renderItinerary(id);
+        }
+        function getTypeColor(type) {
+            const map = { transport: "bg-blue-400", food: "bg-orange-400", sight: "bg-emerald-400", hotel: "bg-indigo-400", shopping: "bg-pink-400", move: "bg-gray-400", activity: "bg-yellow-500" };
+            return map[type] || "bg-gray-400";
+        }
+
+        init();
+    </script>
+</body>
+</html>
