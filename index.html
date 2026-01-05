@@ -28,34 +28,32 @@
             transition: all 0.2s;
         }
         
-        .tag {
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-weight: 500;
-        }
-
         .nav-item.active { color: #B91C1C; font-weight: 600; }
         .nav-item { color: #9CA3AF; transition: color 0.3s; font-size: 0.7rem; }
 
         /* 合約專用樣式 */
-        .contract-bubble {
-            position: relative;
-            padding: 10px 12px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
+        .contract-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
         }
-        .bubble-bin { background-color: #EFF6FF; color: #1E3A8A; border-left: 4px solid #3B82F6; }
-        .bubble-min { background-color: #FFF1F2; color: #881337; border-left: 4px solid #EC4899; }
-        .response-tag {
+        .contract-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #eee;
+        }
+        .contract-item:last-child { border-bottom: none; }
+        
+        .response-badge {
             font-size: 0.75rem;
+            background-color: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
             margin-top: 4px;
             display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.6);
-            font-weight: bold;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -104,7 +102,7 @@
             days: [
                 { id: 1, date: "1/27 (二)", loc: "大阪", note: "移動日", events: [
                     { time: "22:15", title: "抵達關西機場 T2", type: "transport", icon: "fa-plane-arrival", desc: "樂桃 MM028", nav: "Kansai International Airport Terminal 2" },
-                    { time: "23:00", title: "機場巴士 → 難波", type: "transport", icon: "fa-bus", desc: "前往第一航廈搭乘", nav: "Kansai Airport Terminal 1 Bus Stop" },
+                    { time: "23:00", title: "南海地鐵 → 難波", type: "transport", icon: "fa-bus", desc: "前往第一航廈搭乘", nav: "Kansai Airport Terminal 1 Bus Stop" },
                     { time: "24:00", title: "VESSEL INN NAMBA", type: "hotel", icon: "fa-bed", desc: "辦理入住", nav: "Vessel Inn Namba" }
                 ]},
                 { id: 2, date: "1/28 (三)", loc: "大阪", note: "大阪周遊卡 Day 1", events: [
@@ -112,13 +110,13 @@
                     { time: "上午", title: "大阪城 & 天守閣", type: "sight", icon: "fa-chess-rook", desc: "必去地標", nav: "Osaka Castle" },
                     { time: "午餐", title: "大阪水上巴士", type: "sight", icon: "fa-ship", desc: "10:00-16:00 整點出發", nav: "Osaka Suijyo Bus Aqua-Liner" },
                     { time: "下午", title: "上方浮世繪館", type: "sight", icon: "fa-paint-brush", desc: "藝術欣賞", nav: "Kamigata Ukiyoe Museum" },
-                    { time: "18:00", title: "道頓崛 & 晚餐", type: "food", icon: "fa-utensils", desc: "敘敘苑燒肉 (預約制)", nav: "Jojoen Verre Wu Osaka" },
+                    { time: "18:00", title: "道頓崛 & 晚餐", type: "food", icon: "fa-utensils", desc: "敘敘苑燒肉", nav: "Jojoen Verre Wu Osaka" },
                     { time: "20:45", title: "大阪觀光遊艇", type: "sight", icon: "fa-ticket-alt", desc: "⚠️ <span class='text-red-600 font-bold bg-red-50 px-1 rounded'>已預約 20:45</span>\n請準時抵達碼頭", nav: "Tombori River Cruise" }
                 ]},
                 { id: 3, date: "1/29 (四)", loc: "大阪", note: "大阪周遊卡 Day 2", events: [
                     { time: "09:00", title: "難波八阪神社", type: "sight", icon: "fa-torii-gate", desc: "巨大獅子頭舞台", nav: "Namba Yasaka Shrine" },
                     { time: "上午", title: "木津市場", type: "sight", icon: "fa-fish", desc: "感受在地市場活力", nav: "Kizu Wholesale Market" },
-                    { time: "午餐", title: "大起水產 (難波CITY)", type: "food", icon: "fa-sushi", desc: "迴轉壽司名店\n📍 難波CITY", nav: "Daiki Suisan Namba City" },
+                    { time: "午餐", title: "大起水產", type: "food", icon: "fa-sushi", desc: "迴轉壽司名店\n📍 難波CITY", nav: "Daiki Suisan Namba City" },
                     { time: "下午", title: "天王寺動物園", type: "sight", icon: "fa-hippo", desc: "悠閒逛動物園", nav: "Tennoji Zoo" },
                     { time: "下午", title: "通天閣", type: "sight", icon: "fa-broadcast-tower", desc: "新世界地標", nav: "Tsutenkaku" },
                     { time: "晚餐", title: "大阪燒", type: "food", icon: "fa-hamburger", desc: "道地大阪燒 (吃飽再去看夜景)", nav: "Okonomiyaki Chitose" },
@@ -219,7 +217,8 @@
                     { name: "難波船舶旅館 (Vessel Inn)", loc: "大阪", nights: "1/27-1/30" },
                     { name: "京都東山希爾頓逸林酒店", loc: "京都", nights: "1/30-2/1" }
                 ],
-                checkList: ["酸痛貼布", "網路卡", "日幣", "充電線", "行動電源", "常備藥", "發熱褲", "暖腳襪"]
+                checkList: ["酸痛貼布", "網路卡", "日幣", "充電線", "行動電源", "常備藥"],
+                shopping: ["WINSTON CASTER WHITE 5", "暖腳襪 (唐吉柯德)", "白色御守 (下鴨神社)"]
             }
         };
 
@@ -316,26 +315,40 @@
         // 2. 資訊
         function renderInfo() {
             const info = tripData.info;
-            appContent.innerHTML = `
-                <div class="card p-4">
+            let html = `
+                <div class="card p-4 mb-4">
+                    <h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-shopping-cart text-pink-500 mr-2"></i>必買清單</h3>
+                    <ul class="space-y-2">
+                        ${info.shopping.map(item => `
+                            <li class="flex items-center text-sm">
+                                <i class="far fa-check-circle text-pink-300 mr-2"></i>
+                                ${item}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+
+                <div class="card p-4 mb-4">
                     <h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-suitcase-rolling text-blue-500 mr-2"></i>行前確認</h3>
                     <div class="flex flex-wrap gap-2">
                         ${info.checkList.map(i => `<span class="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded border border-yellow-200">${i}</span>`).join('')}
                     </div>
                 </div>
-
-                ${info.flights.map(f => `
-                    <div class="card p-4 border-l-4 border-blue-500">
-                        <div class="flex justify-between mb-2">
-                            <span class="font-bold text-blue-600">${f.dir}</span>
-                            <span class="text-xs text-gray-400">${f.date}</span>
-                        </div>
-                        <div class="text-lg font-bold mb-1">${f.airline}</div>
-                        <div class="text-sm text-gray-600 mb-2">${f.time}</div>
-                        <div class="text-xs bg-gray-100 p-2 rounded text-gray-500">座位: ${f.seat}</div>
-                    </div>
-                `).join('')}
             `;
+
+            html += info.flights.map(f => `
+                <div class="card p-4 border-l-4 border-blue-500 mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-bold text-blue-600">${f.dir}</span>
+                        <span class="text-xs text-gray-400">${f.date}</span>
+                    </div>
+                    <div class="text-lg font-bold mb-1">${f.airline}</div>
+                    <div class="text-sm text-gray-600 mb-2">${f.time}</div>
+                    <div class="text-xs bg-gray-100 p-2 rounded text-gray-500">座位: ${f.seat}</div>
+                </div>
+            `).join('');
+            
+            appContent.innerHTML = html;
         }
 
         // 3. 帳務
@@ -390,47 +403,56 @@
             appContent.innerHTML = html;
         }
 
-        // 4. 合約 (一字不漏版)
+        // 4. 合約 (分開列表版)
         function renderContract() {
-            let html = `
-                <div class="text-center text-sm text-gray-500 mb-4">編號 • 雙方條約對照</div>
+            // 彬彬哥的要求區塊
+            let binSectionHtml = `
+                <div class="card p-5 mb-4 border-l-4 border-blue-400">
+                    <div class="contract-section-title text-blue-700">
+                        <i class="fas fa-male mr-2 text-xl"></i> 彬彬哥的要求
+                    </div>
+                    <div class="text-sm">
+            `;
+            
+            tripData.contract.forEach(row => {
+                if (row.binReq) {
+                    binSectionHtml += `
+                        <div class="contract-item">
+                            <div class="font-medium text-gray-800 mb-1">${row.binReq}</div>
+                            ${row.minAgree ? `<div class="text-gray-500 text-xs">👱🏻‍♀️ 米妮回應：<span class="text-pink-600 font-bold">${row.minAgree}</span></div>` : ''}
+                        </div>
+                    `;
+                }
+            });
+            binSectionHtml += `</div></div>`;
+
+            // 米妮的要求區塊
+            let minSectionHtml = `
+                <div class="card p-5 mb-4 border-l-4 border-pink-400">
+                    <div class="contract-section-title text-pink-700">
+                        <i class="fas fa-female mr-2 text-xl"></i> 米妮的要求
+                    </div>
+                    <div class="text-sm">
             `;
 
-            html += tripData.contract.map(row => {
-                let binContent = '';
-                if(row.binReq) {
-                    binContent = `
-                        <div class="contract-bubble bubble-bin">
-                            <div class="font-bold text-xs opacity-70 mb-1">國際網紅彬彬哥的要求</div>
-                            <div class="whitespace-pre-line">${row.binReq}</div>
-                            ${row.minAgree ? `<div class="response-tag text-pink-600"><i class="fas fa-check-circle"></i> ${row.minAgree}</div>` : ''}
+            tripData.contract.forEach(row => {
+                if (row.minReq) {
+                    minSectionHtml += `
+                        <div class="contract-item">
+                            <div class="font-medium text-gray-800 mb-1">${row.minReq}</div>
+                            ${row.binAgree ? `<div class="text-gray-500 text-xs">👦🏻 彬彬回應：<span class="text-blue-600 font-bold">${row.binAgree}</span></div>` : ''}
                         </div>
                     `;
                 }
+            });
+            minSectionHtml += `</div></div>`;
 
-                let minContent = '';
-                if(row.minReq) {
-                    minContent = `
-                        <div class="contract-bubble bubble-min">
-                            <div class="font-bold text-xs opacity-70 mb-1">米妮的要求</div>
-                            <div class="whitespace-pre-line">${row.minReq}</div>
-                            ${row.binAgree ? `<div class="response-tag text-blue-600"><i class="fas fa-check-circle"></i> ${row.binAgree}</div>` : ''}
-                        </div>
-                    `;
-                }
+            // 組合
+            let html = `
+                <div class="text-center text-sm text-gray-500 mb-4">📜 雙方不吵架條約</div>
+                ${binSectionHtml}
+                ${minSectionHtml}
 
-                return `
-                    <div class="flex gap-2 mb-6 items-start">
-                        <div class="bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-1">${row.id}</div>
-                        <div class="flex-1">
-                            ${binContent}
-                            ${minContent}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            html += `
                 <div class="mt-8 pt-6 border-t border-gray-200 text-center">
                     <h3 class="text-lg font-bold text-gray-700 mb-2">願我們的旅程充滿快樂與愛 🩵</h3>
                     <div class="grid grid-cols-2 gap-8 mt-6">
