@@ -3,111 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 京阪🎏 最終正確版</title>
+    <title>2026 京阪🎏 彬x妮</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8f9fa; padding-bottom: 80px; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 12px; border-left: 4px solid #ddd; }
-        .card.booked { border-left-color: #ef4444; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f2f5; color: #333; padding-bottom: 90px; }
+        .header { background: #1a2a3a; color: white; padding: 20px 15px; position: sticky; top: 0; z-index: 50; }
+        .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid #ccc; }
         .card.trans { border-left-color: #64748b; }
         .card.food { border-left-color: #f97316; }
         .card.spot { border-left-color: #3b82f6; }
-        .nav-bottom { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
-        .day-pill { flex-shrink: 0; padding: 6px 16px; border-radius: 20px; background: #eee; font-size: 13px; cursor: pointer; }
-        .day-pill.active { background: #1a1a1a; color: white; }
+        .card.booked { border-left-color: #ef4444; background: #fffafb; }
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; padding: 12px 0; }
+        .day-tab { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; background: white; border: 1px solid #ddd; font-size: 14px; margin-right: 8px; }
+        .day-tab.active { background: #1a2a3a; color: white; border-color: #1a2a3a; font-weight: bold; }
+        .booked-tag { font-size: 10px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
     </style>
 </head>
 <body class="max-w-[500px] mx-auto">
 
-    <header class="bg-white p-4 sticky top-0 z-50 border-b flex justify-between items-center">
-        <h1 class="text-lg font-bold text-slate-800">2026 京阪🎏 彬x妮</h1>
-        <span id="day-label" class="bg-slate-800 text-white px-3 py-1 rounded-full text-xs">Day 1</span>
-    </header>
+    <div class="header flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold">2026 京阪自由行</h1>
+            <p class="text-xs opacity-80">1/27 - 2/1 • 彬彬 x 米妮</p>
+        </div>
+        <div id="day-pill" class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">Day 1</div>
+    </div>
 
     <main class="p-4">
-        <div class="flex gap-2 overflow-x-auto pb-4 mb-2" id="day-nav">
-            <div class="day-pill active" onclick="showDay(1)">1/27</div>
-            <div class="day-pill" onclick="showDay(2)">1/28</div>
-            <div class="day-pill" onclick="showDay(3)">1/29</div>
-            <div class="day-pill" onclick="showDay(4)">1/30</div>
-            <div class="day-pill" onclick="showDay(5)">1/31</div>
-            <div class="day-pill" onclick="showDay(6)">2/1</div>
+        <div class="flex overflow-x-auto pb-4 no-scrollbar" id="day-selector">
+            <button class="day-tab active" onclick="changeDay(1)">1/27</button>
+            <button class="day-tab" onclick="changeDay(2)">1/28</button>
+            <button class="day-tab" onclick="changeDay(3)">1/29</button>
+            <button class="day-tab" onclick="changeDay(4)">1/30</button>
+            <button class="day-tab" onclick="changeDay(5)">1/31</button>
+            <button class="day-tab" onclick="changeDay(6)">2/1</button>
         </div>
 
-        <div id="content-area"></div>
+        <div id="itinerary-content"></div>
     </main>
 
     <nav class="nav-bottom">
-        <div class="flex flex-col items-center text-slate-800"><i class="fas fa-calendar-day text-lg"></i><span class="text-[10px]">行程</span></div>
-        <div class="flex flex-col items-center text-slate-400" onclick="alert('資訊與帳目請參考前版，此版專注校正行程')"><i class="fas fa-info-circle text-lg"></i><span class="text-[10px]">其他</span></div>
+        <div class="text-center text-[#1a2a3a]"><i class="fas fa-calendar-alt text-xl"></i><div class="text-[10px]">行程</div></div>
+        <div class="text-center text-gray-400" onclick="alert('合約與預算請參考先前版本')"><i class="fas fa-wallet text-xl"></i><div class="text-[10px]">其他</div></div>
     </nav>
 
     <script>
-        const trip = {
-            1: { date: "1/27 (二)", events: [
-                { time: "13:36", title: "高鐵 826 班次", loc: "台中->桃園", note: "米妮從雲林出發匯合", type: "trans" },
-                { time: "18:00", title: "樂桃 MM028", loc: "桃園 T1", note: "代號 C7R4KK | 座位 8A/8B", type: "trans" },
-                { time: "22:15", title: "抵達關西機場 T2", loc: "KIX", note: "接駁車至 T1 搭機場巴士", type: "trans" },
-                { time: "24:00", title: "入住飯店", loc: "Vessel Inn Namba", note: "休息", type: "spot" }
+        const data = {
+            1: { date: "1/27 (二) 出發日", events: [
+                { time: "13:36", title: "高鐵 826 班次", loc: "台中->桃園", note: "高鐵 13:36 發車 (米妮雲林出發)", type: "trans" },
+                { time: "18:00", title: "樂桃航空 MM028", loc: "桃園機場 T1", note: "代號: C7R4KK | 碩 8B / 妮 8A", type: "trans" },
+                { time: "22:15", title: "抵達關西機場 T2", loc: "關西機場", note: "搭接駁車往 T1 改搭巴士", type: "trans" },
+                { time: "23:00", title: "機場巴士發車", loc: "第一航廈巴士站", note: "預計午夜抵達大阪難波", type: "trans" },
+                { time: "24:00", title: "入住飯店", loc: "Vessel Inn Namba", note: "入住休息", type: "spot" }
             ]},
-            2: { date: "1/28 (三)", events: [
-                { time: "09:00", title: "飯店出發", loc: "大阪市區", note: "使用大阪周遊卡 2日", type: "trans" },
-                { time: "上午", title: "大阪城 + 買發熱褲", loc: "大阪城公園", note: "景點漫步", type: "spot" },
-                { time: "10:00-16:00", title: "大阪水上巴士", loc: "乘船處", note: "整點出發", type: "spot" },
-                { time: "下午", title: "上方浮世繪館", loc: "法善寺旁", note: "周遊卡景點", type: "spot" },
-                { time: "20:45", title: "晚餐：敘敘苑", loc: "已預約分店", note: "💡 已預約 20:45", type: "food", booked: true },
-                { time: "晚間", title: "大阪觀光遊艇", loc: "道頓堀", note: "💡 已預約", type: "spot", booked: true }
+            2: { date: "1/28 (三) 大阪周遊券 D1", events: [
+                { time: "09:00", title: "飯店出發", loc: "大阪難波", note: "開啟大阪周遊卡 2日券", type: "trans" },
+                { time: "上午", title: "大阪城", loc: "大阪城公園", note: "欣賞天守閣", type: "spot" },
+                { time: "上午", title: "買發熱褲", loc: "市區商店", note: "禦寒準備", type: "spot" },
+                { time: "10:00-16:00", title: "大阪水上巴士", loc: "整點出發", note: "周遊卡景點", type: "spot" },
+                { time: "下午", title: "上方浮世繪館", loc: "難波/法善寺旁", note: "周遊卡景點", type: "spot" },
+                { time: "20:45", title: "晚餐：敘敘苑", loc: "燒肉店", note: "💡 已預約 20:45", type: "food", booked: true },
+                { time: "晚間", title: "大阪觀光遊艇", loc: "道頓堀", note: "💡 已預約乘船", type: "spot", booked: true }
             ]},
-            3: { date: "1/29 (四)", events: [
-                { time: "09:00", title: "難波八阪神社", loc: "獅子殿", note: "拍大獅子頭合照", type: "spot" },
-                { time: "上午", title: "木津市場", loc: "市場內", note: "吃新鮮海鮮", type: "food" },
-                { time: "午餐", title: "難波 CITY (大起水產)", loc: "難波 CITY", note: "迴轉壽司", type: "food" },
-                { time: "下午", title: "天王寺動物園", loc: "天王寺", note: "周遊卡景點", type: "spot" },
-                { time: "下午", title: "通天閣", loc: "新世界", note: "欣賞浪速風情", type: "spot" },
-                { time: "傍晚", title: "Harukas 300 展望台", loc: "阿倍野", note: "🎟️ 已買票，未預約時間", type: "spot", booked: true },
-                { time: "晚餐", title: "大阪燒", loc: "大阪市區", note: "在地美食", type: "food" },
-                { time: "住", title: "續住大阪飯店", loc: "Vessel Inn Namba", note: "明天才移往京都", type: "spot" }
+            3: { date: "1/29 (四) 大阪周遊券 D2", events: [
+                { time: "09:00", title: "難波八阪神社", loc: "獅子殿", note: "必拍巨大獅子頭合照", type: "spot" },
+                { time: "上午", title: "木津市場", loc: "木津市場", note: "吃海鮮早餐 (1/28無，改至今日)", type: "food" },
+                { time: "午餐", title: "難波 CITY (大起水產)", loc: "大起水產迴轉壽司", note: "CP值超高壽司", type: "food" },
+                { time: "下午", title: "天王寺動物園", loc: "天王寺公園", note: "周遊卡景點", type: "spot" },
+                { time: "下午", title: "通天閣", loc: "新世界", note: "大阪地標風景", type: "spot" },
+                { time: "夕陽", title: "Harukas 300 展望台", loc: "阿倍野", note: "🎟️ 已買票，未預約時間", type: "spot", booked: true },
+                { time: "晚餐", title: "大阪燒", loc: "市區餐廳", note: "在地大阪口味", type: "food" },
+                { time: "住", title: "續住大阪飯店", loc: "Vessel Inn Namba", note: "今晚仍住大阪", type: "spot" }
             ]},
-            4: { date: "1/30 (五)", events: [
+            4: { date: "1/30 (五) 移動至京都", events: [
                 { time: "09:00", title: "前往京都", loc: "JR京都線", note: "京都御苑、下鴨神社、金閣寺", type: "trans" },
-                { time: "午/晚", title: "Katsurai 豬排 / 錦市場", loc: "京都", note: "入住 DoubleTree Hilton", type: "food" }
+                { time: "餐食", title: "Katsurai 豬排 / 錦市場", loc: "京都", note: "入住 DoubleTree by Hilton", type: "food" }
             ]},
-            5: { date: "1/31 (六)", events: [
-                { time: "07:00", title: "清水寺 + 二年坂", loc: "東山區", note: "早起避開人潮", type: "spot" },
-                { time: "續行", title: "八坂神社 + 祇園", loc: "花見小路", note: "午餐：十二段家壽喜燒", type: "spot" },
+            5: { date: "1/31 (六) 京都漫步", events: [
+                { time: "07:00", title: "清水寺 + 二年坂", loc: "東山區", note: "避開人潮早起行程", type: "spot" },
+                { time: "續行", title: "八坂神社 / 十二段家", loc: "祇園", note: "午餐：壽喜燒老店", type: "spot" },
                 { time: "下午", title: "茶道體驗", loc: "京都", note: "平安神宮、鴨川跳龜", type: "spot" }
             ]},
-            6: { date: "2/1 (日)", events: [
-                { time: "上午", title: "伏見稻荷大社", loc: "千本鳥居", note: "早起拍照", type: "spot" },
-                { time: "下午", title: "臨空城 Outlet", loc: "機場旁", note: "最後血拚", type: "spot" },
-                { time: "18:55", title: "虎航 IT 213", loc: "關西 T1", note: "21:15 抵達桃園", type: "trans" }
+            6: { date: "2/1 (日) 最終採買", events: [
+                { time: "09:00", title: "伏見稻荷大社", loc: "千本鳥居", note: "早起避開觀光客", type: "spot" },
+                { time: "下午", title: "臨空城 Outlet", loc: "機場旁", note: "最後血拚機會", type: "spot" },
+                { time: "18:55", title: "虎航 IT 213 返台", loc: "關西 T1", note: "21:15 抵達桃園", type: "trans" }
             ]}
         };
 
-        function showDay(d) {
-            const area = document.getElementById('content-area');
-            const data = trip[d];
-            document.getElementById('day-label').innerText = `Day ${d}`;
-            document.querySelectorAll('.day-pill').forEach((p, i) => p.classList.toggle('active', i+1 === d));
+        function changeDay(d) {
+            const container = document.getElementById('itinerary-content');
+            const day = data[d];
+            document.getElementById('day-pill').innerText = `Day ${d}`;
+            document.querySelectorAll('.day-tab').forEach((t, i) => t.classList.toggle('active', i+1 === d));
 
-            let html = `<div class="mb-4 font-bold text-slate-500 text-sm italic">${data.date}</div>`;
-            data.events.forEach(e => {
+            let html = `<p class="font-bold text-gray-500 mb-4 flex items-center"><i class="fas fa-clock mr-2"></i>${day.date}</p>`;
+            
+            day.events.forEach(e => {
                 html += `
-                <div class="card p-4 ${e.type} ${e.booked ? 'booked' : ''}">
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="text-[10px] font-bold uppercase text-slate-400">${e.type}</span>
-                        <span class="text-sm font-bold text-slate-700">${e.time}</span>
+                <div class="card ${e.type} ${e.booked ? 'booked' : ''}">
+                    <div class="flex justify-between items-start">
+                        <span class="text-sm font-bold text-gray-800">${e.time}</span>
+                        ${e.booked ? '<span class="booked-tag">已預約 / 已買票</span>' : ''}
                     </div>
-                    <h3 class="font-bold text-slate-800">${e.title}</h3>
-                    <p class="text-xs text-slate-500 mb-2"><i class="fas fa-location-dot"></i> ${e.loc}</p>
-                    <div class="text-sm text-slate-600 bg-slate-50 p-2 rounded">${e.note}</div>
+                    <div class="mt-1 font-bold text-lg">${e.title}</div>
+                    <div class="text-xs text-blue-600 mt-1"><i class="fas fa-map-marker-alt"></i> ${e.loc}</div>
+                    <div class="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">${e.note}</div>
                 </div>`;
             });
-            area.innerHTML = html;
+            container.innerHTML = html;
         }
-        showDay(1);
+        changeDay(1);
     </script>
 </body>
 </html>
