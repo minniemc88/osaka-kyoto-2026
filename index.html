@@ -3,500 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 京阪🎏 之旅</title>
+    <title>2026 京阪🎏 彬彬x米妮</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         
+        :root {
+            --jp-blue: #1a2a3a;
+            --jp-red: #d93535;
+            --bg-gray: #f8f9fa;
+        }
+
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #F3F4F6; /* 淺灰底 */
-            -webkit-tap-highlight-color: transparent;
-            padding-bottom: 80px; /* 避開底部導航 */
+            font-family: 'Noto Sans TC', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-gray);
+            color: #333;
+            padding-bottom: 90px;
         }
 
-        /* 隱藏捲軸但保留功能 */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        /* 卡片特效 */
         .card {
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            transition: transform 0.2s;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+            border: 1px solid #edf2f7;
             overflow: hidden;
-            border: 1px solid #f0f0f0;
-        }
-        .card:active {
-            transform: scale(0.98);
         }
 
-        /* 標籤樣式 */
-        .tag {
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-weight: 500;
-        }
-        .tag-food { background-color: #FEF3C7; color: #92400E; } /* 黃色 */
-        .tag-spot { background-color: #DBEAFE; color: #1E40AF; } /* 藍色 */
-        .tag-transport { background-color: #E5E7EB; color: #374151; } /* 灰色 */
-        .tag-shop { background-color: #FCE7F3; color: #9D174D; } /* 粉色 */
-
-        /* 底部導航 */
-        .bottom-nav {
+        .nav-bottom {
             position: fixed;
             bottom: 0;
-            left: 0;
-            right: 0;
+            width: 100%;
+            max-width: 480px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-top: 1px solid #eee;
+            border-top: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-around;
-            padding: 10px 0 20px 0;
-            z-index: 50;
+            padding: 12px 0 calc(env(safe-area-inset-bottom) + 12px);
+            z-index: 100;
         }
+
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 0.7rem;
-            color: #9CA3AF;
-            width: 25%;
-        }
-        .nav-item.active {
-            color: #4F46E5;
-            font-weight: bold;
-        }
-        .nav-item i {
-            font-size: 1.2rem;
-            margin-bottom: 4px;
+            font-size: 10px;
+            color: #94a3b8;
+            transition: all 0.3s;
         }
 
-        /* 天氣小工具 */
-        .weather-widget {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .nav-item.active { color: var(--jp-blue); font-weight: 700; }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+
+        .tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .tag-food { background: #fff7ed; color: #c2410c; }
+        .tag-spot { background: #f0f9ff; color: #0369a1; }
+        .tag-transport { background: #f1f5f9; color: #475569; }
+
+        .highlight-box {
+            border-left: 4px solid var(--jp-red);
+            background: #fff5f5;
         }
 
-        /* 重要提示高亮 */
-        .highlight-text {
-            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
-            background-repeat: no-repeat;
-            background-size: 100% 0.2em;
-            background-position: 0 88%;
-            font-weight: bold;
-            color: #333;
-        }
-
-        /* Tab Content 切換 */
-        .tab-content { display: none; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body>
+<body class="max-w-md mx-auto">
 
-    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex justify-between items-center">
+    <header class="bg-white p-5 sticky top-0 z-50 flex justify-between items-end border-b">
         <div>
-            <h1 class="text-xl font-bold text-gray-800">2026 京阪之旅 🎏</h1>
-            <p class="text-xs text-gray-500">1/27 (二) - 2/1 (日) • 6 天</p>
+            <h1 class="text-xl font-bold tracking-tight text-slate-800">2026 京阪🎏 彬x妮</h1>
+            <p class="text-xs text-slate-400 mt-1">1/27 - 2/1 • Winter Journey</p>
         </div>
-        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-            <i class="fas fa-user-friends"></i>
+        <div class="text-right">
+            <span class="text-xs font-medium bg-slate-100 px-2 py-1 rounded text-slate-500">Day 1</span>
         </div>
-    </div>
+    </header>
 
-    <div class="p-4 max-w-md mx-auto">
-
-        <div id="tab-schedule" class="tab-content active">
-            <div class="flex overflow-x-auto no-scrollbar gap-3 mb-6 pb-2" id="date-selector">
-                </div>
-
-            <div class="weather-widget shadow-lg">
+    <main class="p-4">
+        
+        <div id="schedule" class="tab-content active">
+            <div class="bg-slate-800 text-white p-4 rounded-2xl mb-6 flex justify-between items-center shadow-lg shadow-slate-200">
                 <div>
-                    <div class="text-sm opacity-90" id="weather-loc">大阪市</div>
-                    <div class="text-3xl font-bold mt-1">4°C</div>
-                    <div class="text-xs mt-1 opacity-80">體感 -1°C • 記得穿發熱褲!</div>
+                    <p class="text-xs opacity-70">今日天氣 (大阪)</p>
+                    <p class="text-2xl font-bold">4°C <span class="text-sm font-normal ml-2">晴れ</span></p>
                 </div>
-                <div class="text-4xl">
-                    <i class="fas fa-snowflake"></i>
-                </div>
+                <i class="fas fa-sun text-3xl text-yellow-400"></i>
             </div>
 
-            <div class="space-y-4" id="timeline-container">
-                </div>
-        </div>
+            <div class="relative border-l-2 border-slate-200 ml-3 pl-6 space-y-8">
+                <div class="relative">
+                    <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-800 border-4 border-white"></div>
+                    <p class="text-sm font-bold text-slate-400 mb-2">1/27 (二)</p>
+                    
+                    <div class="card p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="tag tag-transport">交通</span>
+                            <span class="text-xs text-slate-400">13:36</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800">高鐵 826 班次</h3>
+                        <p class="text-sm text-slate-500 mt-1">台中 > 桃園 (接駁至 TPE)</p>
+                    </div>
 
-        <div id="tab-info" class="tab-content">
-            <h2 class="text-lg font-bold mb-4 text-gray-800">✈️ 航班資訊</h2>
-            
-            <div class="card p-4 mb-4 border-l-4 border-purple-500">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="text-xs text-gray-500 mb-1">去程 1/27 (二) • 樂桃 MM028</div>
-                        <div class="text-xl font-bold text-gray-800">TPE 18:00</div>
-                        <div class="text-gray-400 text-xs my-1">⬇️ 飛行 2h 15m</div>
-                        <div class="text-xl font-bold text-gray-800">KIX 21:15</div>
+                    <div class="card p-4 highlight-box">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="tag bg-red-100 text-red-600">航班</span>
+                            <span class="text-xs text-slate-400">18:00</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800">樂桃航空 MM028</h3>
+                        <p class="text-sm text-slate-600 mt-2">📍 桃園第一航廈</p>
+                        <div class="mt-2 text-xs text-slate-500 bg-white/50 p-2 rounded">
+                            代號: <b>C7R4KK</b> | 碩: 8B / 妮: 8A
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <span class="tag bg-gray-100 text-gray-600">第一航廈</span>
-                        <div class="mt-2 text-xs text-gray-500">訂單: C7R4KK</div>
-                    </div>
-                </div>
-                <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600 flex justify-between">
-                    <span>碩: 8B / 妮: 8A</span>
-                    <span>手提 7kg / 託運 20kg</span>
-                </div>
-            </div>
 
-            <div class="card p-4 mb-6 border-l-4 border-orange-500">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="text-xs text-gray-500 mb-1">回程 2/1 (日) • 虎航 IT 213</div>
-                        <div class="text-xl font-bold text-gray-800">KIX 18:55</div>
-                        <div class="text-gray-400 text-xs my-1">⬇️ 飛行 3h 20m</div>
-                        <div class="text-xl font-bold text-gray-800">TPE 21:15</div>
-                    </div>
-                    <div class="text-right">
-                        <span class="tag bg-gray-100 text-gray-600">第一航廈</span>
-                        <div class="mt-2 text-xs text-gray-500">訂單: N8RYQW</div>
+                    <div class="card p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="tag tag-transport">提醒</span>
+                            <span class="text-xs text-slate-400">22:15</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800">抵達關西機場 (T2)</h3>
+                        <p class="text-sm text-slate-600 mt-1">需搭接駁車至 T1 搭機場巴士</p>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Kansai+Airport" class="mt-3 block text-center py-2 bg-slate-100 rounded text-xs font-bold text-slate-600">
+                            <i class="fas fa-map-marker-alt mr-1"></i> 地圖導航
+                        </a>
                     </div>
                 </div>
-                <div class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600 flex justify-between">
-                    <span>碩: 21A / 妮: 21B</span>
-                    <span>手提 10kg / 託運 20kg</span>
-                </div>
-            </div>
 
-            <h2 class="text-lg font-bold mb-4 text-gray-800">🏨 住宿資訊</h2>
-            
-            <div class="card p-4 mb-4">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        <i class="fas fa-bed"></i>
+                <div class="relative">
+                    <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-300 border-4 border-white"></div>
+                    <p class="text-sm font-bold text-slate-400 mb-2">1/28 (三) 大阪周遊日</p>
+                    <div class="card p-4">
+                        <span class="tag tag-food mb-2 inline-block">必吃</span>
+                        <h3 class="font-bold text-slate-800">木津市場</h3>
+                        <p class="text-sm text-slate-500">推薦：大起水產海鮮丼。注意13:00收攤！</p>
                     </div>
-                    <div>
-                        <h3 class="font-bold text-gray-800">Vessel Inn Namba</h3>
-                        <p class="text-xs text-gray-500">大阪難波船舶旅館</p>
-                    </div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 mb-3">
-                    📍 大阪市中央區道頓堀2-2-18
-                </div>
-                <a href="https://www.google.com/maps/search/?api=1&query=Vessel+Inn+Namba" target="_blank" class="block w-full text-center py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                    <i class="fas fa-location-arrow mr-1"></i> 導航到飯店
-                </a>
-            </div>
-
-            <div class="card p-4 mb-4">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                        <i class="fas fa-tree"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-gray-800">DoubleTree Kyoto Higashiyama</h3>
-                        <p class="text-xs text-gray-500">京都東山希爾頓逸林酒店</p>
+                    <div class="card p-4">
+                        <span class="tag tag-spot mb-2 inline-block">景點</span>
+                        <h3 class="font-bold text-slate-800">難波八阪神社</h3>
+                        <p class="text-sm text-slate-500">巨大獅子殿拍合照 (契約內照片額度注意!)</p>
                     </div>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 mb-3">
-                    📍 京都市東山區本町1-45
-                </div>
-                <a href="https://www.google.com/maps/search/?api=1&query=DoubleTree+by+Hilton+Kyoto+Higashiyama" target="_blank" class="block w-full text-center py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
-                    <i class="fas fa-location-arrow mr-1"></i> 導航到飯店
-                </a>
             </div>
         </div>
 
-        <div id="tab-budget" class="tab-content">
-            <h2 class="text-lg font-bold mb-4 text-gray-800">💰 預算與備忘</h2>
-            
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <div class="card p-4 text-center border-t-4 border-green-400">
-                    <div class="text-xs text-gray-500">已付公款</div>
-                    <div class="text-xl font-bold text-gray-800">TWD 24,719</div>
-                </div>
-                <div class="card p-4 text-center border-t-4 border-pink-400">
-                    <div class="text-xs text-gray-500">米妮專用</div>
-                    <div class="text-xl font-bold text-gray-800">TWD 24,719</div>
-                </div>
+        <div id="info" class="tab-content">
+            <h2 class="font-bold mb-4 flex items-center"><i class="fas fa-hotel mr-2 text-blue-500"></i> 住宿與憑證</h2>
+            <div class="card p-4">
+                <p class="text-xs text-slate-400">1/27 - 1/29 (2晚)</p>
+                <h3 class="font-bold">Vessel Inn Namba</h3>
+                <p class="text-sm text-slate-600 mt-1">已付 $7,537 | 入住憑證已存雲端</p>
+            </div>
+            <div class="card p-4">
+                <p class="text-xs text-slate-400">1/29 - 2/1 (3晚)</p>
+                <h3 class="font-bold">希爾頓逸林酒店 (京都東山)</h3>
+                <p class="text-sm text-slate-600 mt-1">已付 $6,155</p>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-                <h3 class="text-sm font-bold text-gray-700 mb-3 border-b pb-2">✅ 出發前檢查</h3>
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i> 保險 (米妮已買)</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i> 網卡 (5天10G)</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i> 日幣換匯 (彬彬哥處理)</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i> 西瓜卡 (手機綁定)</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-exclamation-circle text-red-500"></i> 酸痛貼布、發熱褲</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-exclamation-circle text-red-500"></i> 3C 充電線、行動電源</li>
-                </ul>
-            </div>
-            
-            <div class="text-center text-xs text-gray-400 mt-8">
-                緊急聯絡: 110 (警察) / 119 (救護)
+            <h2 class="font-bold mt-6 mb-4 flex items-center"><i class="fas fa-clipboard-check mr-2 text-green-500"></i> 待辦清單</h2>
+            <div class="card p-4 text-sm space-y-3">
+                <div class="flex items-center gap-3"><i class="far fa-check-square text-green-500"></i> 保險 (米妮已買)</div>
+                <div class="flex items-center gap-3"><i class="far fa-check-square text-green-500"></i> 換日幣 (彬彬已換)</div>
+                <div class="flex items-center gap-3"><i class="far fa-square text-slate-300"></i> 購買大阪周遊券2日</div>
+                <div class="flex items-center gap-3"><i class="far fa-square text-slate-300"></i> 準備酸痛貼布、發熱褲</div>
             </div>
         </div>
 
-        <div id="tab-contract" class="tab-content">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">💗 不吵架契約</h2>
-                <p class="text-sm text-gray-500">願我們的旅程充滿快樂與愛</p>
+        <div id="budget" class="tab-content">
+            <h2 class="font-bold mb-4"><i class="fas fa-coins mr-2 text-yellow-500"></i> 預算統計</h2>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="card p-4 bg-slate-50 border-none">
+                    <p class="text-xs text-slate-500">公款已支出</p>
+                    <p class="text-lg font-bold">NT$ 15,864</p>
+                </div>
+                <div class="card p-4 bg-slate-50 border-none">
+                    <p class="text-xs text-slate-500">米妮專用額度</p>
+                    <p class="text-lg font-bold">NT$ 25,409</p>
+                </div>
+            </div>
+            <div class="card p-4">
+                <h3 class="text-sm font-bold border-b pb-2 mb-2">細目 (已付項目)</h3>
+                <table class="w-full text-sm">
+                    <tr class="border-b"><td class="py-2 text-slate-500">大阪住宿</td><td class="text-right font-medium">$7,537</td></tr>
+                    <tr class="border-b"><td class="py-2 text-slate-500">京都住宿</td><td class="text-right font-medium">$6,155</td></tr>
+                    <tr class="border-b"><td class="py-2 text-slate-500">高鐵票</td><td class="text-right font-medium">$970</td></tr>
+                    <tr><td class="py-2 text-slate-500">HARUKAS 300</td><td class="text-right font-medium">$640</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div id="love" class="tab-content">
+            <div class="text-center py-6">
+                <p class="text-4xl mb-2">🎎</p>
+                <h2 class="text-xl font-bold">不吵架契約 (2026版)</h2>
+                <p class="text-xs text-slate-400">彬彬哥 ❤️ 米妮</p>
             </div>
 
             <div class="space-y-4">
-                <div class="card p-5 relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-100 rounded-full opacity-50"></div>
-                    <h3 class="font-bold text-blue-800 mb-3">👦 彬彬哥的要求</h3>
-                    <ul class="text-sm space-y-3 text-gray-700">
-                        <li class="flex gap-2"><i class="fas fa-camera text-blue-500 mt-1"></i> 不要一直拍照 (單點最多10張)</li>
-                        <li class="flex gap-2"><i class="fas fa-walking text-blue-500 mt-1"></i> 不能嫌走路累 (不舒服可說)</li>
-                        <li class="flex gap-2"><i class="fas fa-comments text-blue-500 mt-1"></i> 有事直接討論，不猜測</li>
-                        <li class="flex gap-2"><i class="fas fa-check text-blue-500 mt-1"></i> 確定行程再行動</li>
+                <div class="card p-5 border-l-4 border-blue-400">
+                    <h3 class="font-bold text-blue-600 mb-2">👦 彬彬哥的小叮嚀</h3>
+                    <ul class="text-sm space-y-3 text-slate-600">
+                        <li>📸 單點拍照最多 10 張，合照 5 張 (妮：儘量好看)。</li>
+                        <li>🚶 不能嫌走路累，不舒服要說，會哭夭但會繼續走。</li>
+                        <li>💬 有事直接討論，不要讓彼此猜測。</li>
                     </ul>
                 </div>
-
-                <div class="card p-5 relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-pink-100 rounded-full opacity-50"></div>
-                    <h3 class="font-bold text-pink-800 mb-3">👧 米妮的要求</h3>
-                    <ul class="text-sm space-y-3 text-gray-700">
-                        <li class="flex gap-2"><i class="fas fa-image text-pink-500 mt-1"></i> 照片至少要有好看的</li>
-                        <li class="flex gap-2"><i class="fas fa-smile text-pink-500 mt-1"></i> 不擺臭臉 (除非太累)</li>
-                        <li class="flex gap-2"><i class="fas fa-heart text-pink-500 mt-1"></i> 意見不同就溝通，不說難聽話</li>
-                        <li class="flex gap-2"><i class="fas fa-map-marked text-pink-500 mt-1"></i> 迷路或帶錯路不能生氣</li>
+                <div class="card p-5 border-l-4 border-pink-400">
+                    <h3 class="font-bold text-pink-600 mb-2">👧 米妮的小要求</h3>
+                    <ul class="text-sm space-y-3 text-slate-600">
+                        <li>😤 不要擺臭臉或不說話 (累了除外)。</li>
+                        <li>🗺️ 迷路或帶錯路不能生氣，這是一起討論的景點。</li>
+                        <li>🌙 每天分享開心/不愉快，並感謝對方。</li>
                     </ul>
                 </div>
-                
-                <div class="bg-indigo-50 rounded-xl p-4 text-center text-indigo-800 text-sm font-medium mt-6">
-                    🤝 每日任務：分享開心/不愉快的事，並感謝對方。
+                <div class="p-4 bg-indigo-50 rounded-xl text-center">
+                    <p class="text-xs text-indigo-700 font-medium italic">"願我們的旅程充滿快樂與愛🩵"</p>
                 </div>
             </div>
         </div>
+    </main>
 
-    </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('schedule', this)">
-            <i class="fas fa-map-marked-alt"></i>
+    <nav class="nav-bottom">
+        <a href="javascript:void(0)" onclick="switchTab('schedule', this)" class="nav-item active">
+            <i class="fas fa-calendar-alt"></i>
             <span>行程</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('info', this)">
-            <i class="fas fa-ticket-alt"></i>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('info', this)" class="nav-item">
+            <i class="fas fa-info-circle"></i>
             <span>資訊</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('budget', this)">
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('budget', this)" class="nav-item">
             <i class="fas fa-wallet"></i>
-            <span>預算</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('contract', this)">
-            <i class="fas fa-hand-holding-heart"></i>
+            <span>記帳</span>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('love', this)" class="nav-item">
+            <i class="fas fa-heart"></i>
             <span>契約</span>
-        </div>
+        </a>
     </nav>
 
     <script>
-        // 行程數據 (整理自 CSV)
-        const scheduleData = [
-            {
-                date: "1/27",
-                weekday: "二",
-                location: "大阪",
-                weather: { temp: "5°C", icon: "fas fa-moon", desc: "寒冷/乾燥" },
-                events: [
-                    { time: "22:15", title: "抵達關西機場", type: "transport", location: "KIX", note: "入境約需1小時，出關後速往巴士站", highlight: "趕不上末班電車請搭機場巴士" },
-                    { time: "23:30", title: "前往飯店", type: "transport", location: "Vessel Inn Namba", note: "搭乘機場巴士至難波" },
-                    { time: "24:00", title: "Check-in & 休息", type: "spot", location: "Vessel Inn Namba", note: "明天要早起！" }
-                ]
-            },
-            {
-                date: "1/28",
-                weekday: "三",
-                location: "大阪",
-                weather: { temp: "8°C", icon: "fas fa-cloud-sun", desc: "晴時多雲" },
-                events: [
-                    { time: "09:00", title: "飯店出發", type: "transport", location: "Vessel Inn Namba" },
-                    { time: "10:00", title: "大阪城", type: "spot", location: "Osaka Castle", note: "必看天守閣，公園很大要走", highlight: "使用周遊卡" },
-                    { time: "12:00", title: "木津市場 (午餐)", type: "food", location: "Kizu Market", note: "海鮮丼必吃！注意營業時間只到下午1點", highlight: "大起水產" },
-                    { time: "14:00", title: "難波八阪神社", type: "spot", location: "Namba Yasaka Shrine", note: "巨大獅子頭必拍，求勝運" },
-                    { time: "15:30", title: "通天閣 / 忍者體驗", type: "spot", location: "Tsutenkaku", note: "溜滑梯很刺激", highlight: "周遊卡免費" },
-                    { time: "18:00", title: "晚餐：敘敘苑", type: "food", location: "Jojoen Namba", note: "已預約 20:45 (有點晚，可先吃點心)", highlight: "高級燒肉" },
-                    { time: "21:00", title: "道頓堀 / 觀光船", type: "spot", location: "Dotonbori", note: "跑跑人看板合照", highlight: "周遊卡免費" }
-                ]
-            },
-            {
-                date: "1/29",
-                weekday: "四",
-                location: "大阪 > 京都",
-                weather: { temp: "6°C", icon: "fas fa-cloud", desc: "陰天" },
-                events: [
-                    { time: "09:00", title: "移動至京都", type: "transport", location: "Kyoto Station", note: "搭乘 JR 京都線，約 30 分鐘", highlight: "行李寄放飯店" },
-                    { time: "11:00", title: "京都御苑", type: "spot", location: "Kyoto Gyoen", note: "皇室庭園，非常大" },
-                    { time: "13:00", title: "午餐：Katsurai 豬排", type: "food", location: "Katsurai", note: "評價很高的炸豬排" },
-                    { time: "15:00", title: "金閣寺", type: "spot", location: "Kinkakuji", note: "夕陽照射下最美", highlight: "門票需現金" },
-                    { time: "18:00", title: "晚餐：錦市場 (周邊)", type: "food", location: "Nishiki Market", note: "市場傍晚關門，建議去附近居酒屋", highlight: "吃錦大福/玉子燒" }
-                ]
-            },
-            {
-                date: "1/30",
-                weekday: "五",
-                location: "京都",
-                weather: { temp: "4°C", icon: "fas fa-snowflake", desc: "可能下雪" },
-                events: [
-                    { time: "06:00", title: "清水寺", type: "spot", location: "Kiyomizu-dera", note: "早起拚 6 點開門！人少景美", highlight: "清水舞台" },
-                    { time: "08:00", title: "二年坂 / 三年坂", type: "spot", location: "Sannenzaka", note: "古色古香街道，小心階梯" },
-                    { time: "10:00", title: "下鴨神社", type: "spot", location: "Shimogamo Shrine", note: "求姻緣、美麗", highlight: "買白色蕾絲御守" },
-                    { time: "13:00", title: "午餐：十二段家", type: "food", location: "Junidanya", note: "壽喜燒創始店，非常道地" },
-                    { time: "15:00", title: "祇園 / 花見小路", type: "spot", location: "Hanamikoji", note: "藝妓出沒區域，禁止隨意拍照", highlight: "茶道體驗" },
-                    { time: "17:00", title: "鴨川散步", type: "spot", location: "Kamogawa Delta", note: "看夕陽，小心老鷹搶食" }
-                ]
-            },
-            {
-                date: "1/31",
-                weekday: "六",
-                location: "京都",
-                weather: { temp: "5°C", icon: "fas fa-sun", desc: "晴朗" },
-                events: [
-                    { time: "09:00", title: "伏見稻荷大社", type: "spot", location: "Fushimi Inari Taisha", note: "千本鳥居，要爬山", highlight: "狐狸繪馬" },
-                    { time: "12:00", title: "八坂神社", type: "spot", location: "Yasaka Shrine", note: "美容水記得洗臉" },
-                    { time: "15:00", title: "臨空城 Outlet (建議)", type: "shop", location: "Rinku Premium Outlets", note: "離機場近，或改至最後一天去", highlight: "買好買滿" },
-                    { time: "19:00", title: "晚餐：串燒", type: "food", location: "Pontocho", note: "先斗町有許多選擇" }
-                ]
-            },
-            {
-                date: "2/1",
-                weekday: "日",
-                location: "返台",
-                weather: { temp: "7°C", icon: "fas fa-plane", desc: "旅途平安" },
-                events: [
-                    { time: "09:00", title: "最後採買/整理", type: "shop", location: "Kyoto Station", note: "伊勢丹百貨或唐吉軻德" },
-                    { time: "12:00", title: "前往關西機場", type: "transport", location: "Kansai Airport", note: "預留 1.5 小時車程" },
-                    { time: "16:00", title: "機場報到", type: "transport", location: "KIX Terminal 1", note: "虎航 IT213 (18:55 起飛)" },
-                    { time: "18:55", title: "起飛返台", type: "transport", location: "TPE", highlight: "回家休息囉！" }
-                ]
-            }
-        ];
-
-        let currentDayIndex = 0;
-
-        // 初始化
-        function init() {
-            renderDateSelector();
-            renderTimeline(0);
-        }
-
-        // 渲染日期選擇器
-        function renderDateSelector() {
-            const container = document.getElementById('date-selector');
-            container.innerHTML = scheduleData.map((day, index) => `
-                <div class="flex-shrink-0 text-center px-4 py-2 rounded-xl cursor-pointer transition-colors ${index === 0 ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-400'}" 
-                     onclick="selectDate(${index}, this)">
-                    <div class="text-xs font-bold mb-1">${day.date}</div>
-                    <div class="text-sm font-bold">${day.weekday}</div>
-                </div>
-            `).join('');
-        }
-
-        // 選擇日期
-        function selectDate(index, el) {
-            currentDayIndex = index;
-            
-            // 更新樣式
-            const buttons = document.getElementById('date-selector').children;
-            Array.from(buttons).forEach(btn => {
-                btn.className = 'flex-shrink-0 text-center px-4 py-2 rounded-xl cursor-pointer transition-colors bg-white text-gray-400';
-            });
-            el.className = 'flex-shrink-0 text-center px-4 py-2 rounded-xl cursor-pointer transition-colors bg-indigo-600 text-white shadow-md';
-
-            renderTimeline(index);
-        }
-
-        // 渲染行程卡片
-        function renderTimeline(index) {
-            const day = scheduleData[index];
-            const container = document.getElementById('timeline-container');
-            const weatherWidget = document.querySelector('.weather-widget');
-
-            // 更新天氣
-            document.getElementById('weather-loc').innerText = day.location;
-            weatherWidget.querySelector('.text-3xl').innerText = day.weather.temp;
-            weatherWidget.querySelector('.text-xs').innerText = day.weather.desc;
-            weatherWidget.querySelector('.text-4xl').innerHTML = `<i class="${day.weather.icon}"></i>`;
-
-            // 生成卡片
-            container.innerHTML = day.events.map(event => {
-                let tagClass = '';
-                let tagText = '';
-                let icon = '';
-
-                switch(event.type) {
-                    case 'food': tagClass = 'tag-food'; tagText = '美食'; icon = 'fa-utensils'; break;
-                    case 'spot': tagClass = 'tag-spot'; tagText = '景點'; icon = 'fa-camera'; break;
-                    case 'transport': tagClass = 'tag-transport'; tagText = '交通'; icon = 'fa-subway'; break;
-                    case 'shop': tagClass = 'tag-shop'; tagText = '購物'; icon = 'fa-shopping-bag'; break;
-                }
-
-                // 導航連結
-                const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location + " " + (event.location === '大阪' || event.location === '京都' ? 'Station' : 'Japan'))}`;
-
-                return `
-                <div class="card p-4 flex gap-4">
-                    <div class="flex flex-col items-center min-w-[50px]">
-                        <div class="text-lg font-bold text-gray-800">${event.time}</div>
-                        <div class="h-full w-0.5 bg-gray-100 mt-2"></div>
-                    </div>
-                    <div class="flex-1 pb-2">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="tag ${tagClass}">${tagText}</span>
-                            <a href="${mapLink}" target="_blank" class="text-gray-400 hover:text-blue-500">
-                                <i class="fas fa-location-arrow"></i>
-                            </a>
-                        </div>
-                        <h3 class="text-lg font-bold text-gray-800 mb-1">
-                            ${event.title}
-                        </h3>
-                        <p class="text-sm text-gray-500 mb-2">
-                            <i class="fas ${icon} mr-1 opacity-50"></i> ${event.location}
-                        </p>
-                        ${event.note ? `<p class="text-sm text-gray-600 bg-gray-50 p-2 rounded">${event.note}</p>` : ''}
-                        ${event.highlight ? `<p class="text-xs mt-2 highlight-text inline-block">💡 ${event.highlight}</p>` : ''}
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-
-        // 切換下方 Tab
         function switchTab(tabId, el) {
-            // 隱藏所有內容
-            document.querySelectorAll('.tab-content').forEach(div => div.classList.remove('active'));
-            // 顯示選中內容
-            document.getElementById('tab-' + tabId).classList.add('active');
-            
-            // 更新按鈕樣式
+            // Hide all
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            
+            // Show target
+            document.getElementById(tabId).classList.add('active');
             el.classList.add('active');
-
-            window.scrollTo(0,0);
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
         }
-
-        // 啟動
-        init();
-
     </script>
 </body>
 </html>
