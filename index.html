@@ -161,7 +161,7 @@
             ]
         };
 
-        // 預設 Money 資料
+        // 預設 Money 資料 (若離線使用)
         const defaultMoney = {
             common: [
                 { item: "關西—難波", cost: 562, payer: "彬彬" },
@@ -181,7 +181,6 @@
         };
 
         let liveMoneyData = null;
-        let lastUpdateStr = "";
         let currentDayId = 1;
         const appContent = document.getElementById('app-content');
         const headerSubtitle = document.getElementById('header-subtitle');
@@ -235,7 +234,7 @@
 
                 const rows = parseCSV(text);
                 parseMoneyData(rows);
-                renderMoney();
+                renderMoney(); // 更新畫面 (含重新計算總額)
 
                 const now = new Date();
                 const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
@@ -285,12 +284,13 @@
             const newCommon = [];
             const newPersonal = [];
             
+            // 從第3行開始讀取 (Index 2)
             for (let i = 2; i < rows.length; i++) {
                 const row = rows[i];
                 if (!row) continue;
 
-                // 左邊：共同
-                if (row.length > 0 && row[0]) {
+                // 左邊：共同 (Col 0, 1, 2)
+                if (row.length > 0 && row[0] && row[0].trim() !== "") {
                     let cost = parseInt(row[1]?.replace(/,/g, '')) || 0;
                     let payer = row[2] || "未標註";
                     if(payer.includes("彬")) payer = "彬彬";
@@ -298,8 +298,8 @@
                     newCommon.push({ item: row[0], cost: cost, payer: payer });
                 }
                 
-                // 右邊：個人 (寬鬆判斷，只要該行有足夠欄位)
-                if (row.length > 9 && row[9]) {
+                // 右邊：個人 (Col 9, 10) - 增加檢查避免 undefined
+                if (row.length > 9 && row[9] && row[9].trim() !== "") {
                     let cost = parseInt(row[10]?.replace(/,/g, '')) || 0;
                     newPersonal.push({ item: row[9], cost: cost });
                 }
@@ -329,9 +329,10 @@
         // 帳務
         function renderMoney() {
             const data = liveMoneyData || defaultMoney;
+            
+            // 即時計算總額
             const commonTotal = data.common.reduce((sum, item) => sum + item.cost, 0);
             const personalTotal = data.personal.reduce((sum, item) => sum + item.cost, 0);
-            const grandTotal = commonTotal + personalTotal;
 
             let html = `
                 <div class="flex justify-between items-center mb-2 px-1">
@@ -385,20 +386,8 @@
                         </table>
                     </div>
                 </div>
-
-                <div class="card p-4 bg-gray-800 text-white shadow-lg">
-                    <h3 class="text-center text-sm text-gray-400 mb-2">📊 整趟旅程總支出</h3>
-                    <div class="flex justify-between items-center text-xs mb-1">
-                        <span>公費</span><span>$${commonTotal.toLocaleString()}</span>
-                    </div>
-                    <div class="flex justify-between items-center text-xs mb-3 border-b border-gray-700 pb-2">
-                        <span>個人</span><span>$${personalTotal.toLocaleString()}</span>
-                    </div>
-                    <div class="text-center">
-                        <span class="text-3xl font-bold text-yellow-400">$${grandTotal.toLocaleString()}</span>
-                    </div>
-                </div>
             `;
+            // 已移除最下方的「整趟旅程總支出」卡片
             appContent.innerHTML = html;
         }
 
