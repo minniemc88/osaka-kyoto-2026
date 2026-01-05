@@ -3,268 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 京阪🎏 彬彬x米妮</title>
+    <title>2026 京阪🎏 彬彬 x 米妮</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
-        :root {
-            --jp-blue: #1a2a3a;
-            --jp-red: #d93535;
-            --bg-gray: #f8f9fa;
-        }
-
-        body {
-            font-family: 'Noto Sans TC', 'Noto Sans JP', sans-serif;
-            background-color: var(--bg-gray);
-            color: #333;
-            padding-bottom: 90px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin-bottom: 1rem;
-            border: 1px solid #edf2f7;
-            overflow: hidden;
-        }
-
-        .nav-bottom {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 480px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0 calc(env(safe-area-inset-bottom) + 12px);
-            z-index: 100;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
-            color: #94a3b8;
-            transition: all 0.3s;
-        }
-
-        .nav-item.active { color: var(--jp-blue); font-weight: 700; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f7f8fa; padding-bottom: 90px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 12px; overflow: hidden; }
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; max-width: 500px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #999; }
+        .nav-item.active { color: #1a1a1a; font-weight: bold; }
         .nav-item i { font-size: 20px; margin-bottom: 4px; }
-
-        .tag {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
+        .day-pill { flex-shrink: 0; padding: 8px 20px; border-radius: 20px; background: white; border: 1px solid #ddd; font-size: 14px; color: #666; cursor: pointer; }
+        .day-pill.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+        .tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-right: 4px; }
         .tag-food { background: #fff7ed; color: #c2410c; }
         .tag-spot { background: #f0f9ff; color: #0369a1; }
-        .tag-transport { background: #f1f5f9; color: #475569; }
-
-        .highlight-box {
-            border-left: 4px solid var(--jp-red);
-            background: #fff5f5;
-        }
-
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
-        .tab-content.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tag-trans { background: #f1f5f9; color: #475569; }
+        .highlight { border-left: 4px solid #ef4444; background: #fff5f5; }
     </style>
 </head>
-<body class="max-w-md mx-auto">
+<body class="max-w-[500px] mx-auto">
 
-    <header class="bg-white p-5 sticky top-0 z-50 flex justify-between items-end border-b">
+    <header class="bg-white p-5 sticky top-0 z-50 border-b flex justify-between items-center">
         <div>
-            <h1 class="text-xl font-bold tracking-tight text-slate-800">2026 京阪🎏 彬x妮</h1>
-            <p class="text-xs text-slate-400 mt-1">1/27 - 2/1 • Winter Journey</p>
+            <h1 class="text-xl font-bold">京阪🎏 2026 冬</h1>
+            <p class="text-xs text-gray-400">1/27 - 2/1 (6 Days)</p>
         </div>
-        <div class="text-right">
-            <span class="text-xs font-medium bg-slate-100 px-2 py-1 rounded text-slate-500">Day 1</span>
-        </div>
+        <div class="bg-black text-white px-3 py-1 rounded-full text-xs" id="current-day-label">Day 1</div>
     </header>
 
     <main class="p-4">
         
-        <div id="schedule" class="tab-content active">
-            <div class="bg-slate-800 text-white p-4 rounded-2xl mb-6 flex justify-between items-center shadow-lg shadow-slate-200">
-                <div>
-                    <p class="text-xs opacity-70">今日天氣 (大阪)</p>
-                    <p class="text-2xl font-bold">4°C <span class="text-sm font-normal ml-2">晴れ</span></p>
-                </div>
-                <i class="fas fa-sun text-3xl text-yellow-400"></i>
+        <div id="tab-schedule" class="tab-content active">
+            <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar" id="day-nav">
+                <div class="day-pill active" onclick="showDay(1)">1/27</div>
+                <div class="day-pill" onclick="showDay(2)">1/28</div>
+                <div class="day-pill" onclick="showDay(3)">1/29</div>
+                <div class="day-pill" onclick="showDay(4)">1/30</div>
+                <div class="day-pill" onclick="showDay(5)">1/31</div>
+                <div class="day-pill" onclick="showDay(6)">2/1</div>
             </div>
 
-            <div class="relative border-l-2 border-slate-200 ml-3 pl-6 space-y-8">
-                <div class="relative">
-                    <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-800 border-4 border-white"></div>
-                    <p class="text-sm font-bold text-slate-400 mb-2">1/27 (二)</p>
-                    
-                    <div class="card p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="tag tag-transport">交通</span>
-                            <span class="text-xs text-slate-400">13:36</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800">高鐵 826 班次</h3>
-                        <p class="text-sm text-slate-500 mt-1">台中 > 桃園 (接駁至 TPE)</p>
-                    </div>
-
-                    <div class="card p-4 highlight-box">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="tag bg-red-100 text-red-600">航班</span>
-                            <span class="text-xs text-slate-400">18:00</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800">樂桃航空 MM028</h3>
-                        <p class="text-sm text-slate-600 mt-2">📍 桃園第一航廈</p>
-                        <div class="mt-2 text-xs text-slate-500 bg-white/50 p-2 rounded">
-                            代號: <b>C7R4KK</b> | 碩: 8B / 妮: 8A
-                        </div>
-                    </div>
-
-                    <div class="card p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="tag tag-transport">提醒</span>
-                            <span class="text-xs text-slate-400">22:15</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800">抵達關西機場 (T2)</h3>
-                        <p class="text-sm text-slate-600 mt-1">需搭接駁車至 T1 搭機場巴士</p>
-                        <a href="https://www.google.com/maps/search/?api=1&query=Kansai+Airport" class="mt-3 block text-center py-2 bg-slate-100 rounded text-xs font-bold text-slate-600">
-                            <i class="fas fa-map-marker-alt mr-1"></i> 地圖導航
-                        </a>
-                    </div>
+            <div id="day-details">
                 </div>
+        </div>
 
-                <div class="relative">
-                    <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-300 border-4 border-white"></div>
-                    <p class="text-sm font-bold text-slate-400 mb-2">1/28 (三) 大阪周遊日</p>
-                    <div class="card p-4">
-                        <span class="tag tag-food mb-2 inline-block">必吃</span>
-                        <h3 class="font-bold text-slate-800">木津市場</h3>
-                        <p class="text-sm text-slate-500">推薦：大起水產海鮮丼。注意13:00收攤！</p>
-                    </div>
-                    <div class="card p-4">
-                        <span class="tag tag-spot mb-2 inline-block">景點</span>
-                        <h3 class="font-bold text-slate-800">難波八阪神社</h3>
-                        <p class="text-sm text-slate-500">巨大獅子殿拍合照 (契約內照片額度注意!)</p>
-                    </div>
-                </div>
+        <div id="tab-info" class="tab-content">
+            <h2 class="font-bold text-lg mb-4">✈️ 航班/交通詳細</h2>
+            <div class="card p-4 border-l-4 border-orange-400">
+                <div class="flex justify-between font-bold"><span>樂桃 MM028 (去)</span><span class="text-orange-600">桃園 T1</span></div>
+                <p class="text-sm mt-2 text-gray-600">1/27 18:00起飛 → 22:15 抵達關西 T2</p>
+                <p class="text-xs mt-1 text-gray-400">訂單：C7R4KK | 座位：8A/8B | 託運 20kg</p>
+            </div>
+            <div class="card p-4 border-l-4 border-yellow-400">
+                <div class="flex justify-between font-bold"><span>虎航 IT 213 (回)</span><span class="text-yellow-600">關西 T1</span></div>
+                <p class="text-sm mt-2 text-gray-600">2/1 18:55起飛 → 21:15 抵達桃園 T1</p>
+                <p class="text-xs mt-1 text-gray-400">訂單：N8RYQW | 座位：21A/21B | 託運 20kg</p>
+            </div>
+
+            <h2 class="font-bold text-lg mt-6 mb-4">🏨 住宿資訊</h2>
+            <div class="card p-4">
+                <p class="text-xs text-gray-400">1/27-1/29 (2晚)</p>
+                <h3 class="font-bold">Vessel Inn Namba (大阪)</h3>
+                <p class="text-sm text-gray-600">〒542-0071 大阪市中央区道頓堀2-2-18</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=Vessel+Inn+Namba" class="mt-2 inline-block text-blue-500 text-sm font-bold">打開地圖 →</a>
+            </div>
+            <div class="card p-4">
+                <p class="text-xs text-gray-400">1/29-2/1 (3晚)</p>
+                <h3 class="font-bold">DoubleTree by Hilton (京都東山)</h3>
+                <p class="text-sm text-gray-600">〒605-0981 京都市東山区本町1-45</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=DoubleTree+by+Hilton+Kyoto+Higashiyama" class="mt-2 inline-block text-blue-500 text-sm font-bold">打開地圖 →</a>
             </div>
         </div>
 
-        <div id="info" class="tab-content">
-            <h2 class="font-bold mb-4 flex items-center"><i class="fas fa-hotel mr-2 text-blue-500"></i> 住宿與憑證</h2>
-            <div class="card p-4">
-                <p class="text-xs text-slate-400">1/27 - 1/29 (2晚)</p>
-                <h3 class="font-bold">Vessel Inn Namba</h3>
-                <p class="text-sm text-slate-600 mt-1">已付 $7,537 | 入住憑證已存雲端</p>
+        <div id="tab-budget" class="tab-content">
+            <h2 class="font-bold text-lg mb-4">💰 預算與記帳</h2>
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="card p-4 bg-slate-900 text-white border-none">
+                    <p class="text-[10px] opacity-60 uppercase">共同預算支出</p>
+                    <p class="text-xl font-bold">NT$ 15,864</p>
+                </div>
+                <div class="card p-4 bg-pink-500 text-white border-none">
+                    <p class="text-[10px] opacity-60 uppercase">米妮預估總額</p>
+                    <p class="text-xl font-bold">NT$ 25,409</p>
+                </div>
             </div>
             <div class="card p-4">
-                <p class="text-xs text-slate-400">1/29 - 2/1 (3晚)</p>
-                <h3 class="font-bold">希爾頓逸林酒店 (京都東山)</h3>
-                <p class="text-sm text-slate-600 mt-1">已付 $6,155</p>
+                <h3 class="font-bold border-b pb-2 mb-3 text-sm">共同項目清單</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between"><span>關西—難波 (彬彬)</span><span>$562</span></div>
+                    <div class="flex justify-between"><span>大阪住宿 (米妮)</span><span>$7,537</span></div>
+                    <div class="flex justify-between"><span>觀景台 (彬彬)</span><span>$640</span></div>
+                    <div class="flex justify-between"><span>京都住宿 (米妮)</span><span>$6,155</span></div>
+                    <div class="flex justify-between"><span>高鐵票 (彬彬)</span><span>$970</span></div>
+                </div>
             </div>
-
-            <h2 class="font-bold mt-6 mb-4 flex items-center"><i class="fas fa-clipboard-check mr-2 text-green-500"></i> 待辦清單</h2>
-            <div class="card p-4 text-sm space-y-3">
-                <div class="flex items-center gap-3"><i class="far fa-check-square text-green-500"></i> 保險 (米妮已買)</div>
-                <div class="flex items-center gap-3"><i class="far fa-check-square text-green-500"></i> 換日幣 (彬彬已換)</div>
-                <div class="flex items-center gap-3"><i class="far fa-square text-slate-300"></i> 購買大阪周遊券2日</div>
-                <div class="flex items-center gap-3"><i class="far fa-square text-slate-300"></i> 準備酸痛貼布、發熱褲</div>
+            <div class="card p-4 highlight">
+                <h3 class="font-bold text-red-600 mb-2 text-sm">📌 待辦清單</h3>
+                <ul class="text-xs space-y-2 text-gray-600">
+                    <li>✅ 米妮：保險已買好</li>
+                    <li>✅ 彬彬：日幣已換好</li>
+                    <li>⬜️ 行程中：購買大阪周遊卡 2日</li>
+                    <li>⬜️ 出發前：準備酸痛貼布、行動電源、發熱褲</li>
+                </ul>
             </div>
         </div>
 
-        <div id="budget" class="tab-content">
-            <h2 class="font-bold mb-4"><i class="fas fa-coins mr-2 text-yellow-500"></i> 預算統計</h2>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="card p-4 bg-slate-50 border-none">
-                    <p class="text-xs text-slate-500">公款已支出</p>
-                    <p class="text-lg font-bold">NT$ 15,864</p>
-                </div>
-                <div class="card p-4 bg-slate-50 border-none">
-                    <p class="text-xs text-slate-500">米妮專用額度</p>
-                    <p class="text-lg font-bold">NT$ 25,409</p>
-                </div>
-            </div>
-            <div class="card p-4">
-                <h3 class="text-sm font-bold border-b pb-2 mb-2">細目 (已付項目)</h3>
-                <table class="w-full text-sm">
-                    <tr class="border-b"><td class="py-2 text-slate-500">大阪住宿</td><td class="text-right font-medium">$7,537</td></tr>
-                    <tr class="border-b"><td class="py-2 text-slate-500">京都住宿</td><td class="text-right font-medium">$6,155</td></tr>
-                    <tr class="border-b"><td class="py-2 text-slate-500">高鐵票</td><td class="text-right font-medium">$970</td></tr>
-                    <tr><td class="py-2 text-slate-500">HARUKAS 300</td><td class="text-right font-medium">$640</td></tr>
-                </table>
-            </div>
-        </div>
-
-        <div id="love" class="tab-content">
-            <div class="text-center py-6">
-                <p class="text-4xl mb-2">🎎</p>
-                <h2 class="text-xl font-bold">不吵架契約 (2026版)</h2>
-                <p class="text-xs text-slate-400">彬彬哥 ❤️ 米妮</p>
-            </div>
-
-            <div class="space-y-4">
-                <div class="card p-5 border-l-4 border-blue-400">
-                    <h3 class="font-bold text-blue-600 mb-2">👦 彬彬哥的小叮嚀</h3>
-                    <ul class="text-sm space-y-3 text-slate-600">
-                        <li>📸 單點拍照最多 10 張，合照 5 張 (妮：儘量好看)。</li>
-                        <li>🚶 不能嫌走路累，不舒服要說，會哭夭但會繼續走。</li>
-                        <li>💬 有事直接討論，不要讓彼此猜測。</li>
-                    </ul>
-                </div>
-                <div class="card p-5 border-l-4 border-pink-400">
-                    <h3 class="font-bold text-pink-600 mb-2">👧 米妮的小要求</h3>
-                    <ul class="text-sm space-y-3 text-slate-600">
-                        <li>😤 不要擺臭臉或不說話 (累了除外)。</li>
-                        <li>🗺️ 迷路或帶錯路不能生氣，這是一起討論的景點。</li>
-                        <li>🌙 每天分享開心/不愉快，並感謝對方。</li>
-                    </ul>
-                </div>
-                <div class="p-4 bg-indigo-50 rounded-xl text-center">
-                    <p class="text-xs text-indigo-700 font-medium italic">"願我們的旅程充滿快樂與愛🩵"</p>
+        <div id="tab-love" class="tab-content">
+            <div class="card p-6 bg-pink-50 border-pink-200">
+                <h2 class="text-center text-xl font-bold text-pink-600 mb-4">💗 不吵架契約</h2>
+                <div class="space-y-6">
+                    <div>
+                        <p class="font-bold text-blue-600 border-b border-blue-200 pb-1 mb-2">👦 彬彬的要求</p>
+                        <ul class="text-sm space-y-2 text-gray-700">
+                            <li>• 拍景點最多10張，合照5張</li>
+                            <li>• 不能嫌走路累 (不舒服可以說)</li>
+                            <li>• 確定行程再行動</li>
+                            <li>• 有事直接討論，不要猜</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-bold text-pink-600 border-b border-pink-200 pb-1 mb-2">👧 米妮的要求</p>
+                        <ul class="text-sm space-y-2 text-gray-700">
+                            <li>• 不要擺臭臉/不說話 (累了除外)</li>
+                            <li>• 意見不同就溝通，不說難聽話</li>
+                            <li>• 迷路或帶錯路不能生氣</li>
+                            <li>• 每天分享開心/不愉快並感謝對方</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
     <nav class="nav-bottom">
-        <a href="javascript:void(0)" onclick="switchTab('schedule', this)" class="nav-item active">
-            <i class="fas fa-calendar-alt"></i>
-            <span>行程</span>
-        </a>
-        <a href="javascript:void(0)" onclick="switchTab('info', this)" class="nav-item">
-            <i class="fas fa-info-circle"></i>
-            <span>資訊</span>
-        </a>
-        <a href="javascript:void(0)" onclick="switchTab('budget', this)" class="nav-item">
-            <i class="fas fa-wallet"></i>
-            <span>記帳</span>
-        </a>
-        <a href="javascript:void(0)" onclick="switchTab('love', this)" class="nav-item">
-            <i class="fas fa-heart"></i>
-            <span>契約</span>
-        </a>
+        <div class="nav-item active" onclick="switchTab('schedule', this)"><i class="fas fa-map-marked-alt"></i><span>行程</span></div>
+        <div class="nav-item" onclick="switchTab('info', this)"><i class="fas fa-plane"></i><span>資訊</span></div>
+        <div class="nav-item" onclick="switchTab('budget', this)"><i class="fas fa-coins"></i><span>帳目</span></div>
+        <div class="nav-item" onclick="switchTab('love', this)"><i class="fas fa-heart"></i><span>契約</span></div>
     </nav>
 
     <script>
+        const dayData = {
+            1: {
+                title: "1/27 (二) 出發日",
+                weather: "4~10°C 大阪",
+                events: [
+                    { time: "13:36", title: "高鐵 826 班次", loc: "台中高鐵站", note: "米妮從雲林出發匯合，搭往桃園站", type: "trans" },
+                    { time: "18:00", title: "樂桃航空 MM028", loc: "桃園機場第一航廈", note: "提早 2-3 小時報到。託運20kg", type: "trans", highlight: "機票代號: C7R4KK" },
+                    { time: "22:15", title: "抵達關西機場 T2", loc: "關西國際機場", note: "下飛機後需搭乘接駁車往 T1", type: "trans" },
+                    { time: "23:00", title: "機場巴士往難波", loc: "第一航廈巴士乘車處", note: "若趕不上南海電鐵，搭巴士最方便", type: "trans" },
+                    { time: "24:00", title: "入住 Vessel Inn Namba", loc: "難波飯店", note: "入住休息，明日大阪周遊行程", type: "spot" }
+                ]
+            },
+            2: {
+                title: "1/28 (三) 大阪周遊",
+                weather: "5~11°C 晴",
+                events: [
+                    { time: "09:00", title: "飯店出發", loc: "Vessel Inn Namba", note: "開啟大阪周遊卡 2日券", type: "trans" },
+                    { time: "10:00", title: "大阪城", loc: "大阪城公園", note: "攻略：天守閣人多需排隊。必拍天守閣倒影。", type: "spot" },
+                    { time: "12:00", title: "木津市場 (午餐)", loc: "木津卸売市場", note: "必吃：海鮮丼、大起水產。注意市場13:00後關門！", type: "food" },
+                    { time: "14:00", title: "大阪水上巴士", loc: "大阪城港", note: "周遊卡免費。整點出發，需預約。", type: "spot" },
+                    { time: "15:30", title: "上方浮世繪館 & 難波八阪神社", loc: "難波區域", note: "難波八阪神社獅子殿是必拍熱點。", type: "spot" },
+                    { time: "18:00", title: "通天閣 / 忍者體驗", loc: "新世界", note: "通天閣溜滑梯需排隊。新世界很有昭和感。", type: "spot" },
+                    { time: "20:45", title: "晚餐：敘敘苑", loc: "敘敘苑 (已預約)", note: "必點：厚切牛舌。高級燒肉犒賞第一天。", type: "food" },
+                    { time: "22:30", title: "大阪觀光遊艇", loc: "道頓堀", note: "拍跑跑人合照，吹吹晚風。", type: "spot" }
+                ]
+            },
+            3: {
+                title: "1/29 (四) 大阪 > 京都",
+                weather: "3~8°C 多雲",
+                events: [
+                    { time: "09:00", title: "退房往京都", loc: "搭乘 JR 京都線", note: "移動至京都，先行寄放行李至 DoubleTree", type: "trans" },
+                    { time: "11:00", title: "京都御苑", loc: "京都御所", note: "攻略：感受京都皇室氛圍，範圍極大。", type: "spot" },
+                    { time: "13:00", title: "午餐：Katsurai 豬排", loc: "中京區", note: "必吃：酥脆豬排。", type: "food" },
+                    { time: "15:00", title: "下鴨神社", loc: "下鴨神社", note: "日本最古老神社之一，求美麗、姻緣。", type: "spot" },
+                    { time: "17:00", title: "金閣寺", loc: "鹿苑寺", note: "攻略：夕照下的金閣寺最美，五點前要離場。", type: "spot" },
+                    { time: "19:00", title: "錦市場 (晚餐)", loc: "錦市場周邊", note: "攻略：錦市場18:00陸續休息，可在周邊居酒屋吃。", type: "food" }
+                ]
+            },
+            4: {
+                title: "1/30 (五) 京都古都行",
+                weather: "2~7°C 寒冷",
+                events: [
+                    { time: "07:00", title: "清水寺 + 二年坂", loc: "東山區", note: "攻略：06:00開門，越早人越少。和服體驗👘好時機。", type: "spot" },
+                    { time: "10:30", title: "八坂神社", loc: "祇園", note: "攻略：美御前社有「美容水」。", type: "spot" },
+                    { time: "12:30", title: "午餐：十二段家 本店", loc: "祇園", note: "必吃：壽喜燒。百年老店，人氣旺需排隊。", type: "food" },
+                    { time: "14:30", title: "祇園與花見小路", loc: "祇園", note: "攻略：有機會看到藝妓，但嚴禁隨意拍照。", type: "spot" },
+                    { time: "16:00", title: "茶道體驗", loc: "京都茶室", note: "體驗靜謐的日本文化。", type: "spot" },
+                    { time: "18:00", title: "平安神宮 & 鴨川", loc: "鴨川跳龜", note: "鴨川散步散心，履行分享日記時光。", type: "spot" }
+                ]
+            },
+            5: {
+                title: "1/31 (六) 稻荷與血拚",
+                weather: "3~9°C 晴",
+                events: [
+                    { time: "09:00", title: "伏見稻荷大社", loc: "千本鳥居", note: "攻略：千本鳥居必拍，想避人潮要往上爬。", type: "spot" },
+                    { time: "13:00", title: "臨空城 Outlet", loc: "Rinku Town", note: "最後血拚機會！準備購入伴手禮。", type: "spot" },
+                    { time: "18:00", title: "晚餐：大阪燒", loc: "難波/京都皆可", note: "來關西必吃美食。", type: "food" }
+                ]
+            },
+            6: {
+                title: "2/1 (日) 返台日",
+                weather: "5~11°C 晴",
+                events: [
+                    { time: "09:00", title: "京都飯店出發", loc: "Haruka 特急", note: "移動往關西機場。", type: "trans" },
+                    { time: "16:00", title: "機場報到", loc: "關西機場第一航廈", note: "託運20kg，最後免稅店補貨。", type: "trans" },
+                    { time: "18:55", title: "虎航 IT 213 起飛", loc: "關西機場", note: "準備回台灣溫暖的家。", type: "trans", highlight: "機票代號: N8RYQW" },
+                    { time: "21:15", title: "抵達桃園機場", loc: "桃園機場第一航廈", note: "行程圓滿結束！", type: "trans" }
+                ]
+            }
+        };
+
+        function showDay(dayNum) {
+            const container = document.getElementById('day-details');
+            const data = dayData[dayNum];
+            document.getElementById('current-day-label').innerText = `Day ${dayNum}`;
+            
+            // 更新 Pill 樣式
+            document.querySelectorAll('.day-pill').forEach((pill, idx) => {
+                pill.classList.toggle('active', idx + 1 === dayNum);
+            });
+
+            let html = `<div class="bg-black text-white p-4 rounded-xl mb-4 flex justify-between">
+                <div><h3 class="font-bold">${data.title}</h3><p class="text-xs opacity-70">${data.weather}</p></div>
+                <i class="fas fa-snowflake animate-pulse"></i>
+            </div>`;
+
+            data.events.forEach(ev => {
+                let tagClass = ev.type === 'food' ? 'tag-food' : (ev.type === 'trans' ? 'tag-trans' : 'tag-spot');
+                let tagText = ev.type === 'food' ? '必吃' : (ev.type === 'trans' ? '交通' : '景點');
+                
+                html += `
+                <div class="card p-4 ${ev.highlight ? 'highlight' : ''}">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="tag ${tagClass}">${tagText}</span>
+                        <span class="text-sm font-bold text-gray-800">${ev.time}</span>
+                    </div>
+                    <h4 class="font-bold text-lg text-slate-800">${ev.title}</h4>
+                    <p class="text-xs text-slate-500 mt-1"><i class="fas fa-map-marker-alt mr-1"></i> ${ev.loc}</p>
+                    <div class="mt-2 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                        ${ev.note}
+                    </div>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.loc)}" target="_blank" class="mt-2 block text-right text-xs text-blue-500 font-bold">一鍵導航 →</a>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
         function switchTab(tabId, el) {
-            // Hide all
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            
-            // Show target
-            document.getElementById(tabId).classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
             el.classList.add('active');
-            
-            // Scroll to top
-            window.scrollTo(0, 0);
+            window.scrollTo(0,0);
         }
+
+        // 初始顯示第一天
+        showDay(1);
     </script>
 </body>
 </html>
