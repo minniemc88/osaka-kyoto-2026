@@ -88,7 +88,7 @@
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTp0MhtAO0YZ0ovwdUOHabThzBaxYkVkmbF9BO8ihFLpy7IKBWcVd3_YGSHCQp7Q/pub?gid=1753282654&single=true&output=csv';
         // ========================================================
 
-        // 固定資料 (行程、資訊、合約 - 離線使用)
+        // 固定資料
         const staticData = {
             days: [
                 { id: 1, date: "1/27 (二)", loc: "大阪", note: "移動日", events: [
@@ -234,7 +234,7 @@
 
                 const rows = parseCSV(text);
                 parseMoneyData(rows);
-                renderMoney(); // 更新畫面 (含重新計算總額)
+                renderMoney(); 
 
                 const now = new Date();
                 const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
@@ -280,6 +280,15 @@
             return rows;
         }
 
+        // 強力數字清理函數：移除所有 $、NT$、逗號、空格，只留數字和點
+        function cleanCost(val) {
+            if (!val) return 0;
+            // 將所有不是數字 (0-9)、小數點 (.)、負號 (-) 的字元都取代為空字串
+            const cleanString = val.toString().replace(/[^\d.-]/g, '');
+            const number = parseFloat(cleanString);
+            return isNaN(number) ? 0 : number;
+        }
+
         function parseMoneyData(rows) {
             const newCommon = [];
             const newPersonal = [];
@@ -291,16 +300,16 @@
 
                 // 左邊：共同 (Col 0, 1, 2)
                 if (row.length > 0 && row[0] && row[0].trim() !== "") {
-                    let cost = parseInt(row[1]?.replace(/,/g, '')) || 0;
+                    let cost = cleanCost(row[1]); // 使用強力清理
                     let payer = row[2] || "未標註";
                     if(payer.includes("彬")) payer = "彬彬";
                     if(payer.includes("米")) payer = "米妮";
                     newCommon.push({ item: row[0], cost: cost, payer: payer });
                 }
                 
-                // 右邊：個人 (Col 9, 10) - 增加檢查避免 undefined
+                // 右邊：個人 (Col 9, 10)
                 if (row.length > 9 && row[9] && row[9].trim() !== "") {
-                    let cost = parseInt(row[10]?.replace(/,/g, '')) || 0;
+                    let cost = cleanCost(row[10]); // 使用強力清理
                     newPersonal.push({ item: row[9], cost: cost });
                 }
             }
@@ -387,7 +396,6 @@
                     </div>
                 </div>
             `;
-            // 已移除最下方的「整趟旅程總支出」卡片
             appContent.innerHTML = html;
         }
 
