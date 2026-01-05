@@ -85,7 +85,7 @@
 
     <script>
         // ========================================================
-        // 🔧 設定區：已修正為正確的 CSV 格式連結
+        // 🔧 設定區：已修正為正確的 CSV 格式連結 (注意結尾是 &output=csv)
         // ========================================================
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTp0MhtAO0YZ0ovwdUOHabThzBaxYkVkmbF9BO8ihFLpy7IKBWcVd3_YGSHCQp7Q/pub?gid=1753282654&single=true&output=csv';
         // ========================================================
@@ -281,6 +281,11 @@
                 if (!response.ok) throw new Error("Network response was not ok");
                 const text = await response.text();
                 
+                // 如果回傳的是 HTML 錯誤頁面，手動拋出錯誤
+                if (text.trim().startsWith("<!DOCTYPE html>")) {
+                    throw new Error("Received HTML instead of CSV");
+                }
+
                 const rows = parseCSV(text);
                 parseMoneyData(rows);
                 renderMoney(); // 重新渲染
@@ -292,7 +297,7 @@
 
             } catch (error) {
                 console.error("Fetch error:", error);
-                if(status) status.innerText = "❌ 更新失敗，顯示離線資料";
+                if(status) status.innerText = "❌ 格式錯誤 (請檢查連結)";
             } finally {
                 if(btn) {
                     btn.disabled = false;
@@ -346,7 +351,7 @@
                 if (!row || row.length < 2) continue;
 
                 // 左邊：共同 (Col 0:項目, 1:金額, 2:付款人)
-                if (row[0]) {
+                if (row[0] && row[0].trim() !== "") {
                     let cost = parseInt(row[1]?.replace(/,/g, '')) || 0;
                     let payer = row[2] || "未標註";
                     if(payer.includes("彬")) payer = "彬彬";
@@ -356,7 +361,7 @@
                 }
                 
                 // 右邊：個人 (依據CSV Col 9, 10)
-                if (row[9]) {
+                if (row[9] && row[9].trim() !== "") {
                     let cost = parseInt(row[10]?.replace(/,/g, '')) || 0;
                     newPersonal.push({ item: row[9], cost: cost });
                 }
