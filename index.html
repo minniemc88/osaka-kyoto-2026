@@ -13,7 +13,7 @@
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #F9FAFB;
             color: #333;
-            padding-bottom: 90px; /* 增加底部留白 */
+            padding-bottom: 90px;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -38,11 +38,24 @@
         .nav-item.active { color: #B91C1C; font-weight: 600; }
         .nav-item { color: #9CA3AF; transition: color 0.3s; font-size: 0.7rem; }
 
-        /* 合約簽名特效 */
-        .signature-line {
-            border-bottom: 2px dashed #CBD5E1;
-            height: 30px;
-            margin-top: 10px;
+        /* 合約專用樣式 */
+        .contract-bubble {
+            position: relative;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        .bubble-bin { background-color: #EFF6FF; color: #1E3A8A; border-left: 4px solid #3B82F6; }
+        .bubble-min { background-color: #FFF1F2; color: #881337; border-left: 4px solid #EC4899; }
+        .response-tag {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.6);
+            font-weight: bold;
         }
     </style>
 </head>
@@ -99,17 +112,17 @@
                     { time: "上午", title: "大阪城 & 天守閣", type: "sight", icon: "fa-chess-rook", desc: "必去地標", nav: "Osaka Castle" },
                     { time: "午餐", title: "大阪水上巴士", type: "sight", icon: "fa-ship", desc: "10:00-16:00 整點出發", nav: "Osaka Suijyo Bus Aqua-Liner" },
                     { time: "下午", title: "上方浮世繪館", type: "sight", icon: "fa-paint-brush", desc: "藝術欣賞", nav: "Kamigata Ukiyoe Museum" },
-                    { time: "18:00", title: "道頓崛 & 晚餐", type: "food", icon: "fa-utensils", desc: "敘敘苑燒肉 (預約制)", nav: "Jojoen Verre Wu Osaka" },
+                    { time: "18:00", title: "道頓崛 & 晚餐", type: "food", icon: "fa-utensils", desc: "敘敘苑燒肉 ", nav: "Jojoen Verre Wu Osaka" },
                     { time: "20:45", title: "大阪觀光遊艇", type: "sight", icon: "fa-ticket-alt", desc: "⚠️ <span class='text-red-600 font-bold bg-red-50 px-1 rounded'>已預約 20:45</span>\n請準時抵達碼頭", nav: "Tombori River Cruise" }
                 ]},
                 { id: 3, date: "1/29 (四)", loc: "大阪", note: "大阪周遊卡 Day 2", events: [
                     { time: "09:00", title: "難波八阪神社", type: "sight", icon: "fa-torii-gate", desc: "巨大獅子頭舞台", nav: "Namba Yasaka Shrine" },
                     { time: "上午", title: "木津市場", type: "sight", icon: "fa-fish", desc: "感受在地市場活力", nav: "Kizu Wholesale Market" },
-                    { time: "午餐", title: "大起水產 (難波CITY)", type: "food", icon: "fa-sushi", desc: "迴轉壽司名店\n📍 難波CITY", nav: "Daiki Suisan Namba City" },
+                    { time: "午餐", title: "大起水產", type: "food", icon: "fa-sushi", desc: "迴轉壽司名店\n📍 難波CITY", nav: "Daiki Suisan Namba City" },
                     { time: "下午", title: "天王寺動物園", type: "sight", icon: "fa-hippo", desc: "悠閒逛動物園", nav: "Tennoji Zoo" },
                     { time: "下午", title: "通天閣", type: "sight", icon: "fa-broadcast-tower", desc: "新世界地標", nav: "Tsutenkaku" },
-                    { time: "晚餐", title: "大阪燒", type: "food", icon: "fa-hamburger", desc: "道地大阪燒 (吃飽再去看夜景)", nav: "Okonomiyaki Chitose" },
-                    { time: "晚上", title: "Harukas 300 展望台", type: "sight", icon: "fa-binoculars", desc: "✅ 票已買\n絕美夜景", nav: "Harukas 300" }
+                    { time: "晚餐", title: "大阪燒", type: "food", icon: "fa-hamburger", nav: "Okonomiyaki Chitose" },
+                    { time: "晚上", title: "Harukas 300 展望台", type: "sight", icon: "fa-binoculars", desc: "✅ 票已買", nav: "Harukas 300" }
                 ]},
                 { id: 4, date: "1/30 (五)", loc: "京都", note: "移動至京都", events: [
                     { time: "09:00", title: "移動至京都", type: "transport", icon: "fa-train", desc: "JR京都線 / 阪急電鐵\n🏨 飯店：京都東山希爾頓逸林酒店", nav: "DoubleTree by Hilton Kyoto Higashiyama" },
@@ -138,21 +151,65 @@
             ],
             money: {
                 common: [
-                    { item: "關西—難波 (彬彬)", cost: 562 },
-                    { item: "大阪住宿 (米妮)", cost: 7537 },
-                    { item: "觀景台 (彬彬)", cost: 640 },
-                    { item: "京都住宿 (米妮)", cost: 6155 },
-                    { item: "高鐵票 (彬彬)", cost: 970 }
+                    { item: "關西—難波", cost: 562, payer: "彬彬" },
+                    { item: "大阪住宿", cost: 7537, payer: "米妮" },
+                    { item: "觀景台", cost: 640, payer: "彬彬" },
+                    { item: "京都住宿", cost: 6155, payer: "米妮" },
+                    { item: "高鐵票", cost: 970, payer: "彬彬" }
                 ],
                 personal: [
-                    { item: "機票 (米妮)", cost: 17947 },
-                    { item: "保險 (米妮)", cost: 414 },
-                    { item: "🍉 Suica卡 (米妮)", cost: 201 },
-                    { item: "飯店 (米妮專用)", cost: 6157 },
+                    { item: "機票", cost: 17947 },
+                    { item: "保險", cost: 414 },
+                    { item: "🍉 Suica卡", cost: 201 },
+                    { item: "飯店 (個人)", cost: 6157 },
                     { item: "高鐵 (雲林-台中)", cost: 205 },
                     { item: "高鐵 (台中-桃園)", cost: 485 }
                 ]
             },
+            contract: [
+                { id: 1, 
+                  binReq: "不要一直拍照，\n一個景點幫拍最多10張，合照5張", 
+                  minAgree: "🤏至少要有好看的", 
+                  minReq: "不要擺臭臉、不說話（累了除外）", 
+                  binAgree: "✅" 
+                },
+                { id: 2, 
+                  binReq: "不能嫌走路累(不舒服可以說)", 
+                  minAgree: "✅會哭夭但會繼續走", 
+                  minReq: "意見不同就溝通想辦法", 
+                  binAgree: "✅" 
+                },
+                { id: 3, 
+                  binReq: "確定行程再行動", 
+                  minAgree: "✅", 
+                  minReq: "吵架不可以說難聽的話", 
+                  binAgree: "✅" 
+                },
+                { id: 4, 
+                  binReq: "有什麼事直接討論，我不想猜", 
+                  minAgree: "✅", 
+                  minReq: "迷路或帶錯路不能生氣", 
+                  binAgree: "✅" 
+                },
+                { id: 5, 
+                  binReq: "以下空白", 
+                  minAgree: null, 
+                  minReq: "不能嫌棄對方的景點，因為這是一起討論的", 
+                  binAgree: "✅" 
+                },
+                { id: 6, 
+                  binReq: null, 
+                  minAgree: null, 
+                  minReq: "發現情緒來了，要提醒對方冷靜（盡量）", 
+                  binAgree: "✅" 
+                },
+                { id: 7, 
+                  binReq: null, 
+                  minAgree: null, 
+                  minReq: "每天要分享開心/不愉快的事，並且感謝對方", 
+                  binAgree: "有點困難，但我可以聽" 
+                }
+            ],
             info: {
                 flights: [
                     { dir: "去程", date: "1/27 (二)", airline: "樂桃 MM028", time: "18:00 TPE ➝ 22:15 KIX (T2)", seat: "8A (妮), 8B (碩)" },
@@ -162,7 +219,7 @@
                     { name: "難波船舶旅館 (Vessel Inn)", loc: "大阪", nights: "1/27-1/30" },
                     { name: "京都東山希爾頓逸林酒店", loc: "京都", nights: "1/30-2/1" }
                 ],
-                checkList: ["酸痛貼布", "網路卡", "日幣", "充電線", "行動電源", "常備藥", "發熱褲", "暖腳襪"]
+                checkList: ["酸痛貼布", "網路卡", "日幣", "充電線", "行動電源", "常備藥"]
             }
         };
 
@@ -179,9 +236,8 @@
 
         function switchTab(tabName) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget?.classList.add('active'); // 初次載入可能無 event
+            event.currentTarget?.classList.add('active');
             
-            // 根據 Tab 顯示不同 Header 狀態
             const daySel = document.getElementById('day-selector');
             
             if (tabName === 'itinerary') {
@@ -197,7 +253,7 @@
                     headerSubtitle.innerText = "預算管理";
                     renderMoney();
                 } else if (tabName === 'contract') {
-                    headerSubtitle.innerText = "我們打勾勾";
+                    headerSubtitle.innerText = "不吵架契約";
                     renderContract();
                 }
             }
@@ -222,7 +278,7 @@
             renderItinerary(id);
         }
 
-        // 1. 行程渲染
+        // 1. 行程
         function renderItinerary(dayId) {
             const day = tripData.days.find(d => d.id === dayId);
             let html = `
@@ -257,7 +313,7 @@
             return map[type] || "bg-gray-400";
         }
 
-        // 2. 資訊渲染
+        // 2. 資訊
         function renderInfo() {
             const info = tripData.info;
             appContent.innerHTML = `
@@ -282,25 +338,25 @@
             `;
         }
 
-        // 3. 帳務渲染 (公費 vs 個人)
+        // 3. 帳務
         function renderMoney() {
             const commonTotal = tripData.money.common.reduce((sum, item) => sum + item.cost, 0);
             const personalTotal = tripData.money.personal.reduce((sum, item) => sum + item.cost, 0);
 
-            // 公費卡片
             let html = `
                 <div class="card p-0 overflow-hidden mb-4 border-emerald-200 border">
                     <div class="bg-emerald-500 p-4 text-white">
                         <p class="text-xs opacity-80">共同項目 (公費)</p>
                         <p class="text-2xl font-bold">NT$ ${commonTotal.toLocaleString()}</p>
                     </div>
-                    <div class="p-3">
+                    <div class="p-2">
                         <table class="w-full text-sm">
                             ${tripData.money.common.map(m => `
                                 <tr class="border-b last:border-0 border-gray-100">
-                                    <td class="py-2 text-gray-600">${m.item}</td>
-                                    <td class="py-2 text-right font-mono">
-                                        $${m.cost.toLocaleString()}
+                                    <td class="p-3 text-gray-600">${m.item}</td>
+                                    <td class="p-3 text-right">
+                                        <div class="font-mono font-medium">$${m.cost.toLocaleString()}</div>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-md mt-1 inline-block ${m.payer === '米妮' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}">${m.payer}</span>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -309,19 +365,18 @@
                 </div>
             `;
 
-            // 個人卡片 (米妮)
             html += `
                 <div class="card p-0 overflow-hidden mb-4 border-pink-200 border">
                     <div class="bg-pink-500 p-4 text-white">
                         <p class="text-xs opacity-80">米妮個人支出</p>
                         <p class="text-2xl font-bold">NT$ ${personalTotal.toLocaleString()}</p>
                     </div>
-                    <div class="p-3">
+                    <div class="p-2">
                         <table class="w-full text-sm">
                             ${tripData.money.personal.map(m => `
                                 <tr class="border-b last:border-0 border-gray-100">
-                                    <td class="py-2 text-gray-600">${m.item}</td>
-                                    <td class="py-2 text-right font-mono">
+                                    <td class="p-3 text-gray-600">${m.item}</td>
+                                    <td class="p-3 text-right font-mono font-medium">
                                         $${m.cost.toLocaleString()}
                                     </td>
                                 </tr>
@@ -335,39 +390,63 @@
             appContent.innerHTML = html;
         }
 
-        // 4. 合約渲染
+        // 4. 合約 (一字不漏版)
         function renderContract() {
-            appContent.innerHTML = `
-                <div class="card p-6 bg-white border-2 border-dashed border-gray-300 relative">
-                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-1 rounded-full text-xs font-bold">
-                        TRAVEL AGREEMENT
-                    </div>
-                    <h2 class="text-center text-xl font-bold mb-6 mt-2 text-gray-700">🎎 旅遊和平公約</h2>
-                    
-                    <ul class="space-y-4 text-sm text-gray-600 mb-8 list-disc pl-4">
-                        <li>出門在外，<span class="font-bold text-gray-800">以和為貴</span>，不吵架、不生悶氣。</li>
-                        <li>迷路是為了遇見更好的風景，<span class="font-bold text-gray-800">走錯路要笑</span>。</li>
-                        <li>肚子餓容易生氣，<span class="font-bold text-gray-800">準時吃飯</span>最重要。</li>
-                        <li>拍照要拍到<span class="font-bold text-gray-800">米妮滿意為止</span>，彬彬哥要有耐心。</li>
-                        <li>行李太重時，<span class="font-bold text-gray-800">男士優先</span>提重物。</li>
-                    </ul>
+            let html = `
+                <div class="text-center text-sm text-gray-500 mb-4">編號 • 雙方條約對照</div>
+            `;
 
-                    <div class="grid grid-cols-2 gap-8 mt-8">
-                        <div>
-                            <p class="text-xs text-gray-400 mb-1">甲方 (彬彬哥)</p>
-                            <div class="signature-line"></div>
+            html += tripData.contract.map(row => {
+                let binContent = '';
+                if(row.binReq) {
+                    binContent = `
+                        <div class="contract-bubble bubble-bin">
+                            <div class="font-bold text-xs opacity-70 mb-1">國際網紅彬彬哥的要求</div>
+                            <div class="whitespace-pre-line">${row.binReq}</div>
+                            ${row.minAgree ? `<div class="response-tag text-pink-600"><i class="fas fa-check-circle"></i> ${row.minAgree}</div>` : ''}
                         </div>
-                        <div>
-                            <p class="text-xs text-gray-400 mb-1">乙方 (米妮)</p>
-                            <div class="signature-line"></div>
+                    `;
+                }
+
+                let minContent = '';
+                if(row.minReq) {
+                    minContent = `
+                        <div class="contract-bubble bubble-min">
+                            <div class="font-bold text-xs opacity-70 mb-1">米妮的要求</div>
+                            <div class="whitespace-pre-line">${row.minReq}</div>
+                            ${row.binAgree ? `<div class="response-tag text-blue-600"><i class="fas fa-check-circle"></i> ${row.binAgree}</div>` : ''}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="flex gap-2 mb-6 items-start">
+                        <div class="bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-1">${row.id}</div>
+                        <div class="flex-1">
+                            ${binContent}
+                            ${minContent}
                         </div>
                     </div>
+                `;
+            }).join('');
 
-                    <div class="text-center mt-6">
-                        <span class="text-xs text-gray-300">2026.01.27 生效</span>
+            html += `
+                <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">願我們的旅程充滿快樂與愛 🩵</h3>
+                    <div class="grid grid-cols-2 gap-8 mt-6">
+                        <div class="text-center">
+                            <div class="border-b-2 border-gray-300 w-24 mx-auto mb-2"></div>
+                            <span class="text-xs text-gray-400">彬彬哥 (簽署)</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="border-b-2 border-gray-300 w-24 mx-auto mb-2"></div>
+                            <span class="text-xs text-gray-400">米妮 (簽署)</span>
+                        </div>
                     </div>
                 </div>
             `;
+            
+            appContent.innerHTML = html;
         }
 
         // 啟動
