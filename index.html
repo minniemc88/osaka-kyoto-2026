@@ -46,7 +46,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 核取方塊點擊後的刪除線樣式 */
         .todo-item input:checked + span {
             text-decoration: line-through;
             color: #9CA3AF;
@@ -287,10 +286,10 @@
             for (let i = 2; i < rows.length; i++) {
                 const row = rows[i];
                 if (!row) continue;
-                if (row[0]) {
-                    newCommon.push({ item: row[0], cost: cleanCost(row[1]), payer: row[2] || "未標註" });
+                if (row[0] && row[0] !== "項目") {
+                    newCommon.push({ item: row[0], cost: cleanCost(row[1]), payer: row[2].replace("國際網紅彬彬哥", "彬彬") || "未標註" });
                 }
-                if (row[9]) {
+                if (row[9] && row[9] !== "項目") {
                     newPersonal.push({ item: row[9], cost: cleanCost(row[10]) });
                 }
             }
@@ -332,6 +331,7 @@
                     </button>
                 </div>
                 <div id="settlement-container"></div>
+                
                 <div class="card p-0 overflow-hidden mb-4 border-emerald-200 border">
                     <div class="bg-emerald-500 p-4 text-white flex justify-between items-end">
                         <div><p class="text-xs opacity-80 mb-1">公費總支出</p><p class="text-2xl font-bold">NT$ ${commonTotal.toLocaleString()}</p></div>
@@ -353,6 +353,27 @@
                         </table>
                     </div>
                 </div>
+
+                <div class="card p-0 overflow-hidden mb-4 border-pink-200 border">
+                    <div class="bg-pink-500 p-4 text-white flex justify-between items-end">
+                        <div><p class="text-xs opacity-80 mb-1">米妮個人支出</p><p class="text-2xl font-bold">NT$ ${personalTotal.toLocaleString()}</p></div>
+                        <i class="fas fa-user text-4xl opacity-20"></i>
+                    </div>
+                    <div class="p-0">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-gray-500 text-xs border-b border-gray-100">
+                                <tr><th class="text-left p-3 font-normal">項目</th><th class="text-right p-3 font-normal">金額</th></tr>
+                            </thead>
+                            <tbody>
+                            ${data.personal.map(p => `
+                                <tr class="border-b last:border-0 border-gray-100">
+                                    <td class="p-3 text-gray-700 font-medium">${p.item}</td>
+                                    <td class="p-3 text-right font-mono text-gray-600">$${p.cost.toLocaleString()}</td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             `;
             appContent.innerHTML = html;
         }
@@ -366,7 +387,7 @@
             });
             const diff = binPaid - minPaid;
             const amountToPay = Math.abs(diff / 2);
-            let resultHtml = (diff > 0) ? `<div class="font-bold text-lg mb-1">米妮 👩🏻 ➜ 給 彬彬 👦🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div>` : `<div class="font-bold text-lg mb-1">彬彬 👦🏻 ➜ 給 米妮 👩🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div>`;
+            let resultHtml = (diff > 0) ? `<div class="font-bold text-lg mb-1">米妮 👩🏻 給 彬彬 👦🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div>` : `<div class="font-bold text-lg mb-1">彬彬 👦🏻 給 米妮 👩🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div>`;
             let colorClass = (diff > 0) ? "border-blue-500 bg-blue-50 text-blue-800" : "border-pink-500 bg-pink-50 text-pink-800";
             document.getElementById('settlement-container').innerHTML = `<div class="result-box p-4 rounded-xl border-2 text-center shadow-sm mb-4 ${colorClass}">${resultHtml}</div>`;
         }
@@ -374,7 +395,7 @@
         function renderContract() {
             const data = staticData.contract;
             let html = `<div class="text-center text-sm text-gray-500 mb-4">📜 雙方不吵架條約</div>`;
-            html += `<div class="card p-5 mb-4 border-l-4 border-blue-400"><div class="text-blue-700 font-bold mb-3"><i class="fas fa-male mr-2 text-xl"></i> 彬彬哥的要求</div>`;
+            html += `<div class="card p-5 mb-4 border-l-4 border-blue-400"><div class="text-blue-700 font-bold mb-3"><i class="fas fa-male mr-2 text-xl"></i> 彬彬的要求</div>`;
             data.forEach(row => { if (row.binReq) html += `<div class="contract-item"><div class="font-medium text-gray-800 mb-1">${row.binReq}</div><div class="text-gray-500 text-xs">👩🏻 米妮：${row.minAgree || '✅'}</div></div>`; });
             html += `</div>`;
             html += `<div class="card p-5 mb-4 border-l-4 border-pink-400"><div class="text-pink-700 font-bold mb-3"><i class="fas fa-female mr-2 text-xl"></i> 米妮的要求</div>`;
