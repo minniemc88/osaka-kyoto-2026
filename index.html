@@ -45,6 +45,12 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* 核取方塊點擊後的刪除線樣式 */
+        .todo-item input:checked + span {
+            text-decoration: line-through;
+            color: #9CA3AF;
+        }
     </style>
 </head>
 <body>
@@ -82,13 +88,8 @@
     </nav>
 
     <script>
-        // ========================================================
-        // 🔧 設定區
-        // ========================================================
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTp0MhtAO0YZ0ovwdUOHabThzBaxYkVkmbF9BO8ihFLpy7IKBWcVd3_YGSHCQp7Q/pub?gid=1753282654&single=true&output=csv';
-        // ========================================================
 
-        // 固定資料
         const staticData = {
             days: [
                 { id: 1, date: "1/27 (二)", loc: "大阪", note: "移動日", events: [
@@ -128,7 +129,7 @@
                     { time: "上午", title: "八坂神社", type: "sight", icon: "fa-torii-gate", desc: "祇園守護神", nav: "Yasaka Shrine" },
                     { time: "午餐", title: "壽喜燒：十二段家 本店", type: "food", icon: "fa-utensils", desc: "涮涮鍋發源地", nav: "Junidanya Honten" },
                     { time: "下午", title: "祇園 與 花見小路", type: "sight", icon: "fa-fan", desc: "古色古香街道", nav: "Hanamikoji Street" },
-                    { time: "點心", title: "市川屋珈琲", type: "food", icon: "fa-utensils", desc: "水果三明治，~17:00", },
+                    { time: "點心", title: "市川屋珈琲", type: "food", icon: "fa-utensils", desc: "水果三明治，~17:00", nav: "Ichikawaya Coffee" },
                     { time: "下午", title: "平安神宮", type: "sight", icon: "fa-archway", desc: "巨大紅色鳥居", nav: "Heian Shrine" },
                     { time: "晚餐", title: "串燒", type: "food", icon: "fa-drumstick-bite", desc: "到時候再找喜歡的店", nav: "Pontocho" }
                 ]},
@@ -149,7 +150,10 @@
                     { name: "京都東山希爾頓逸林酒店", loc: "京都", nights: "1/30-2/1" }
                 ],
                 checkList: ["酸痛貼布", "網路卡", "日幣", "充電線", "行動電源", "常備藥"],
-                shopping: ["WINSTON CASTER WHITE 5", "暖腳襪 (唐吉柯德)", "白色御守 (下鴨神社)"]
+                wishList: {
+                    buy: ["WINSTON CASTER WHITE 5軟包*2", "暖腳襪 (唐吉柯德)", "白色御守 (下鴨神社)"],
+                    eat: ["711明治咖啡牛奶", "大起水產壽司", "neel nakazakicho", "市川屋水果三明治", "Afternoon Tea LOVE & TABLE LUCUA大阪店", "Gyukatsu Tomita炸牛排", "綠茶(伊藤園、伊佑衛門)", "星巴克焙茶拿鐵", "市川屋珈琲"]
+                }
             },
             contract: [
                 { id: 1, binReq: "不要一直拍照，\n一個景點幫拍最多10張，合照5張", minAgree: "🤏至少要有好看的", minReq: "不要擺臭臉、不說話（累了除外）", binAgree: "✅" },
@@ -162,7 +166,6 @@
             ]
         };
 
-        // 預設 Money 資料 (若離線使用)
         const defaultMoney = {
             common: [
                 { item: "關西—難波", cost: 562, payer: "彬彬" },
@@ -202,7 +205,7 @@
                 headerSubtitle.innerText = staticData.days.find(d => d.id === currentDayId).date;
                 renderItinerary(currentDayId);
             } else if (tabName === 'info') {
-                headerSubtitle.innerText = "航班與住宿";
+                headerSubtitle.innerText = "行前準備 & 清單";
                 renderInfo();
             } else if (tabName === 'money') {
                 headerSubtitle.innerText = "預算管理";
@@ -220,30 +223,21 @@
         async function fetchMoneyData() {
             const btn = document.getElementById('sync-money-btn');
             const status = document.getElementById('money-status');
-            
             if(btn) {
                 btn.disabled = true;
                 btn.innerHTML = `<i class="fas fa-sync-alt fa-spin-fast mr-1"></i> 讀取中`;
             }
-
             try {
                 const response = await fetch(GOOGLE_SHEET_CSV_URL + '&t=' + new Date().getTime());
-                if (!response.ok) throw new Error("Network error");
                 const text = await response.text();
-                
-                if (text.trim().startsWith("<!DOCTYPE html>")) throw new Error("HTML received");
-
                 const rows = parseCSV(text);
                 parseMoneyData(rows);
                 renderMoney(); 
-
                 const now = new Date();
                 const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
                 if(status) status.innerText = `最後更新: ${timeStr}`;
-
             } catch (error) {
-                console.error("Fetch error:", error);
-                if(status) status.innerText = "❌ 更新失敗，顯示預設資料";
+                if(status) status.innerText = "❌ 更新失敗";
             } finally {
                 if(btn) {
                     btn.disabled = false;
@@ -257,7 +251,6 @@
             let currentRow = [];
             let currentCell = '';
             let insideQuotes = false;
-            
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
                 if (char === '"') {
@@ -281,10 +274,8 @@
             return rows;
         }
 
-        // 強力數字清理函數：移除所有 $、NT$、逗號、空格，只留數字和點
         function cleanCost(val) {
             if (!val) return 0;
-            // 將所有不是數字 (0-9)、小數點 (.)、負號 (-) 的字元都取代為空字串
             const cleanString = val.toString().replace(/[^\d.-]/g, '');
             const number = parseFloat(cleanString);
             return isNaN(number) ? 0 : number;
@@ -293,31 +284,19 @@
         function parseMoneyData(rows) {
             const newCommon = [];
             const newPersonal = [];
-            
-            // 從第3行開始讀取 (Index 2)
             for (let i = 2; i < rows.length; i++) {
                 const row = rows[i];
                 if (!row) continue;
-
-                // 左邊：共同 (Col 0, 1, 2)
-                if (row.length > 0 && row[0] && row[0].trim() !== "") {
-                    let cost = cleanCost(row[1]); // 使用強力清理
-                    let payer = row[2] || "未標註";
-                    if(payer.includes("彬")) payer = "彬彬";
-                    if(payer.includes("米")) payer = "米妮";
-                    newCommon.push({ item: row[0], cost: cost, payer: payer });
+                if (row[0]) {
+                    newCommon.push({ item: row[0], cost: cleanCost(row[1]), payer: row[2] || "未標註" });
                 }
-                
-                // 右邊：個人 (Col 9, 10)
-                if (row.length > 9 && row[9] && row[9].trim() !== "") {
-                    let cost = cleanCost(row[10]); // 使用強力清理
-                    newPersonal.push({ item: row[9], cost: cost });
+                if (row[9]) {
+                    newPersonal.push({ item: row[9], cost: cleanCost(row[10]) });
                 }
             }
             liveMoneyData = { common: newCommon, personal: newPersonal };
         }
 
-        // 行程
         function renderItinerary(dayId) {
             const day = staticData.days.find(d => d.id === dayId);
             let html = `<div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-2 flex items-center shadow-sm"><i class="fas fa-info-circle mr-2 text-lg"></i><span>${day.note}</span></div>`;
@@ -336,14 +315,10 @@
             appContent.innerHTML = html;
         }
 
-        // 帳務
         function renderMoney() {
             const data = liveMoneyData || defaultMoney;
-            
-            // 即時計算總額
             const commonTotal = data.common.reduce((sum, item) => sum + item.cost, 0);
             const personalTotal = data.personal.reduce((sum, item) => sum + item.cost, 0);
-
             let html = `
                 <div class="flex justify-between items-center mb-2 px-1">
                     <span class="text-xs text-gray-400" id="money-status">${liveMoneyData ? '已同步最新資料' : '顯示內建資料'}</span>
@@ -351,14 +326,12 @@
                         <i class="fas fa-sync-alt mr-1"></i> 更新
                     </button>
                 </div>
-                
                 <div class="flex gap-2 mb-4">
                     <button onclick="calculateSettlement()" class="flex-1 bg-gradient-to-r from-gray-800 to-gray-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg active:scale-95 transition-transform flex justify-center items-center">
                         <i class="fas fa-coins mr-2 text-yellow-400"></i> 結算：誰要給誰錢？
                     </button>
                 </div>
                 <div id="settlement-container"></div>
-
                 <div class="card p-0 overflow-hidden mb-4 border-emerald-200 border">
                     <div class="bg-emerald-500 p-4 text-white flex justify-between items-end">
                         <div><p class="text-xs opacity-80 mb-1">公費總支出</p><p class="text-2xl font-bold">NT$ ${commonTotal.toLocaleString()}</p></div>
@@ -380,73 +353,69 @@
                         </table>
                     </div>
                 </div>
-
-                <div class="card p-0 overflow-hidden mb-4 border-pink-200 border">
-                    <div class="bg-pink-500 p-4 text-white flex justify-between items-end">
-                        <div><p class="text-xs opacity-80 mb-1">米妮個人支出</p><p class="text-2xl font-bold">NT$ ${personalTotal.toLocaleString()}</p></div>
-                        <i class="fas fa-shopping-bag text-4xl opacity-20"></i>
-                    </div>
-                    <div class="p-0">
-                        <table class="w-full text-sm">
-                            ${data.personal.map(m => `
-                                <tr class="border-b last:border-0 border-gray-100">
-                                    <td class="p-3 text-gray-600">${m.item}</td>
-                                    <td class="p-3 text-right font-mono font-medium text-gray-800">$${m.cost.toLocaleString()}</td>
-                                </tr>`).join('')}
-                        </table>
-                    </div>
-                </div>
             `;
             appContent.innerHTML = html;
         }
 
         function calculateSettlement() {
             const data = liveMoneyData || defaultMoney;
-            let binPaid = 0;
-            let minPaid = 0;
+            let binPaid = 0; let minPaid = 0;
             data.common.forEach(m => {
                 if (m.payer.includes("彬")) binPaid += m.cost;
                 else if (m.payer.includes("米")) minPaid += m.cost;
             });
             const diff = binPaid - minPaid;
             const amountToPay = Math.abs(diff / 2);
-            let resultHtml = "";
-            let colorClass = "";
-            
-            if (diff > 0) {
-                colorClass = "border-blue-500 bg-blue-50 text-blue-800";
-                resultHtml = `<div class="font-bold text-lg mb-1">米妮 👩🏻 ➜ 給 彬彬 👦🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">彬先付: $${binPaid.toLocaleString()} / 妮先付: $${minPaid.toLocaleString()}</div>`;
-            } else if (diff < 0) {
-                colorClass = "border-pink-500 bg-pink-50 text-pink-800";
-                resultHtml = `<div class="font-bold text-lg mb-1">彬彬 👦🏻 ➜ 給 米妮 👩🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div><div class="text-xs text-gray-500 mt-2">妮先付: $${minPaid.toLocaleString()} / 彬先付: $${binPaid.toLocaleString()}</div>`;
-            } else {
-                colorClass = "border-green-500 bg-green-50 text-green-800";
-                resultHtml = `<div class="font-bold">🎉 雙方付的一樣多！</div>`;
-            }
+            let resultHtml = (diff > 0) ? `<div class="font-bold text-lg mb-1">米妮 👩🏻 ➜ 給 彬彬 👦🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div>` : `<div class="font-bold text-lg mb-1">彬彬 👦🏻 ➜ 給 米妮 👩🏻</div><div class="text-2xl font-bold">NT$ ${Math.floor(amountToPay).toLocaleString()}</div>`;
+            let colorClass = (diff > 0) ? "border-blue-500 bg-blue-50 text-blue-800" : "border-pink-500 bg-pink-50 text-pink-800";
             document.getElementById('settlement-container').innerHTML = `<div class="result-box p-4 rounded-xl border-2 text-center shadow-sm mb-4 ${colorClass}">${resultHtml}</div>`;
         }
 
-        // 合約
         function renderContract() {
             const data = staticData.contract;
-            let binSectionHtml = `<div class="card p-5 mb-4 border-l-4 border-blue-400"><div class="text-blue-700 font-bold mb-3"><i class="fas fa-male mr-2 text-xl"></i> 彬彬哥的要求</div><div class="text-sm">`;
-            data.forEach(row => { if (row.binReq) binSectionHtml += `<div class="contract-item"><div class="font-medium text-gray-800 mb-1">${row.binReq}</div>${row.minAgree ? `<div class="text-gray-500 text-xs">👩🏻 米妮回應：<span class="text-pink-600 font-bold">${row.minAgree}</span></div>` : ''}</div>`; });
-            binSectionHtml += `</div></div>`;
-
-            let minSectionHtml = `<div class="card p-5 mb-4 border-l-4 border-pink-400"><div class="text-pink-700 font-bold mb-3"><i class="fas fa-female mr-2 text-xl"></i> 米妮的要求</div><div class="text-sm">`;
-            data.forEach(row => { if (row.minReq) minSectionHtml += `<div class="contract-item"><div class="font-medium text-gray-800 mb-1">${row.minReq}</div>${row.binAgree ? `<div class="text-gray-500 text-xs">👦🏻 彬彬回應：<span class="text-blue-600 font-bold">${row.binAgree}</span></div>` : ''}</div>`; });
-            minSectionHtml += `</div></div>`;
-
-            appContent.innerHTML = `<div class="text-center text-sm text-gray-500 mb-4">📜 雙方不吵架條約</div>` + binSectionHtml + minSectionHtml + `<div class="mt-8 pt-6 border-t border-gray-200 text-center"><h3 class="text-lg font-bold text-gray-700 mb-2">願我們的旅程充滿快樂與愛 🩵</h3><div class="grid grid-cols-2 gap-8 mt-6"><div class="text-center"><div class="border-b-2 border-gray-300 w-24 mx-auto mb-2"></div><span class="text-xs text-gray-400">彬彬哥 (簽署)</span></div><div class="text-center"><div class="border-b-2 border-gray-300 w-24 mx-auto mb-2"></div><span class="text-xs text-gray-400">米妮 (簽署)</span></div></div></div>`;
+            let html = `<div class="text-center text-sm text-gray-500 mb-4">📜 雙方不吵架條約</div>`;
+            html += `<div class="card p-5 mb-4 border-l-4 border-blue-400"><div class="text-blue-700 font-bold mb-3"><i class="fas fa-male mr-2 text-xl"></i> 彬彬哥的要求</div>`;
+            data.forEach(row => { if (row.binReq) html += `<div class="contract-item"><div class="font-medium text-gray-800 mb-1">${row.binReq}</div><div class="text-gray-500 text-xs">👩🏻 米妮：${row.minAgree || '✅'}</div></div>`; });
+            html += `</div>`;
+            html += `<div class="card p-5 mb-4 border-l-4 border-pink-400"><div class="text-pink-700 font-bold mb-3"><i class="fas fa-female mr-2 text-xl"></i> 米妮的要求</div>`;
+            data.forEach(row => { if (row.minReq) html += `<div class="contract-item"><div class="font-medium text-gray-800 mb-1">${row.minReq}</div><div class="text-gray-500 text-xs">👦🏻 彬彬：${row.binAgree || '✅'}</div></div>`; });
+            html += `</div>`;
+            appContent.innerHTML = html;
         }
 
-        // 資訊
         function renderInfo() {
             const info = staticData.info;
+            const renderList = (list) => list.map(item => `
+                <label class="todo-item flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                    <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-pink-500 focus:ring-pink-500">
+                    <span class="text-sm text-gray-700">${item}</span>
+                </label>
+            `).join('');
+
             appContent.innerHTML = `
-                <div class="card p-4 mb-4"><h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-shopping-cart text-pink-500 mr-2"></i>必買清單</h3><ul class="space-y-2">${info.shopping.map(item => `<li class="flex items-center text-sm"><i class="far fa-check-circle text-pink-300 mr-2"></i>${item}</li>`).join('')}</ul></div>
-                <div class="card p-4 mb-4"><h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-suitcase-rolling text-blue-500 mr-2"></i>行前確認</h3><div class="flex flex-wrap gap-2">${info.checkList.map(i => `<span class="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded border border-yellow-200">${i}</span>`).join('')}</div></div>
-                ${info.flights.map(f => `<div class="card p-4 border-l-4 border-blue-500 mb-4"><div class="flex justify-between mb-2"><span class="font-bold text-blue-600">${f.dir}</span><span class="text-xs text-gray-400">${f.date}</span></div><div class="text-lg font-bold mb-1">${f.airline}</div><div class="text-sm text-gray-600 mb-2">${f.time}</div><div class="text-xs bg-gray-100 p-2 rounded text-gray-500">座位: ${f.seat}</div></div>`).join('')}
+                <div class="card p-4 mb-4">
+                    <h3 class="font-bold border-b pb-2 mb-3 flex items-center justify-between">
+                        <span><i class="fas fa-utensils text-orange-500 mr-2"></i>想吃清單</span>
+                    </h3>
+                    <div class="grid grid-cols-1 gap-1">${renderList(info.wishList.eat)}</div>
+                </div>
+                <div class="card p-4 mb-4">
+                    <h3 class="font-bold border-b pb-2 mb-3 flex items-center justify-between">
+                        <span><i class="fas fa-shopping-cart text-pink-500 mr-2"></i>必買清單</span>
+                    </h3>
+                    <div class="grid grid-cols-1 gap-1">${renderList(info.wishList.buy)}</div>
+                </div>
+                <div class="card p-4 mb-4">
+                    <h3 class="font-bold border-b pb-2 mb-3"><i class="fas fa-suitcase-rolling text-blue-500 mr-2"></i>行前確認</h3>
+                    <div class="flex flex-wrap gap-2">${info.checkList.map(i => `<span class="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded border border-yellow-200">${i}</span>`).join('')}</div>
+                </div>
+                ${info.flights.map(f => `
+                    <div class="card p-4 border-l-4 border-blue-500 mb-4">
+                        <div class="flex justify-between mb-2"><span class="font-bold text-blue-600">${f.dir}</span><span class="text-xs text-gray-400">${f.date}</span></div>
+                        <div class="text-lg font-bold mb-1">${f.airline}</div>
+                        <div class="text-sm text-gray-600">${f.time}</div>
+                    </div>
+                `).join('')}
             `;
         }
 
